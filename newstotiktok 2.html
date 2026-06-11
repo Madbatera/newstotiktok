@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewsToTikTok Studio Pro</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0f; color: #fff; overflow-x: hidden; }
+
+/* ========== STATUS BAR ========== */
+.status-bar { background: #111118; border-bottom: 1px solid #222; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+.status-left { display: flex; align-items: center; gap: 15px; }
+.platform-status { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.platform-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
+.platform-dot.online { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+.platform-dot.offline { background: #ff4444; box-shadow: 0 0 8px #ff4444; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.user-info { font-size: 13px; color: #888; }
+.api-indicators { display: flex; gap: 10px; }
+.api-badge { font-size: 11px; padding: 3px 8px; border-radius: 12px; background: #1a1a2e; border: 1px solid #333; }
+.api-badge.ok { border-color: #00ff88; color: #00ff88; }
+.api-badge.warn { border-color: #ffaa00; color: #ffaa00; }
+.api-badge.error { border-color: #ff4444; color: #ff4444; }
+
+/* ========== HEADER ========== */
+.header { text-align: center; padding: 30px 20px; background: #0a0a0f; }
+.header h1 { font-size: 2.5rem; background: linear-gradient(135deg, #ff0050, #00f2ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+.header p { color: #888; font-size: 1rem; }
+
+/* ========== TRENDING BANNER ========== */
+.trending-banner { background: #1a1a2e; border: 1px solid #333; border-radius: 12px; margin: 0 20px 20px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; overflow: hidden; }
+.trending-label { background: #ff0050; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; white-space: nowrap; }
+.trending-scroll { display: flex; gap: 20px; animation: scrollTrends 20s linear infinite; }
+@keyframes scrollTrends { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.trend-tag { color: #00f2ea; font-size: 14px; white-space: nowrap; cursor: pointer; }
+.trend-tag:hover { text-decoration: underline; }
+
+/* ========== TABS ========== */
+.tabs { display: flex; gap: 5px; padding: 0 20px; margin-bottom: 20px; border-bottom: 1px solid #222; overflow-x: auto; }
+.tab { padding: 12px 24px; background: transparent; border: none; color: #888; cursor: pointer; font-size: 14px; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.3s; }
+.tab:hover { color: #fff; }
+.tab.active { color: #ff0050; border-bottom-color: #ff0050; }
+
+/* ========== PANELS ========== */
+.panel { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
+.panel.active { display: block; }
+
+/* ========== NEWS PANEL ========== */
+.news-controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+.news-controls select, .news-controls input { padding: 10px 15px; background: #1a1a2e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 14px; }
+.news-controls button { padding: 10px 20px; background: #ff0050; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 14px; transition: opacity 0.3s; }
+.news-controls button:hover { opacity: 0.8; }
+.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+.news-card { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 20px; transition: transform 0.3s, border-color 0.3s; }
+.news-card:hover { transform: translateY(-3px); border-color: #ff0050; }
+.news-card h3 { font-size: 16px; margin-bottom: 10px; color: #fff; line-height: 1.4; }
+.news-card p { color: #aaa; font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+.news-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #666; }
+.news-source { color: #00f2ea; }
+.news-link { color: #ff0050; text-decoration: none; font-size: 12px; }
+.news-link:hover { text-decoration: underline; }
+
+/* ========== GENERATOR PANEL ========== */
+.generator-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+@media (max-width: 900px) { .generator-layout { grid-template-columns: 1fr; } }
+.generator-form { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 25px; }
+.generator-form h3 { margin-bottom: 20px; color: #ff0050; }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; margin-bottom: 8px; font-size: 14px; color: #ccc; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; background: #1a1a2e; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 14px; }
+.form-group textarea { min-height: 100px; resize: vertical; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #ff0050; }
+.auto-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 15px; background: #1a1a2e; border-radius: 8px; }
+.toggle-switch { position: relative; width: 50px; height: 26px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #333; border-radius: 26px; transition: 0.3s; }
+.toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+.toggle-switch input:checked + .toggle-slider { background: #ff0050; }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+.btn-primary { width: 100%; padding: 14px; background: #ff0050; border: none; border-radius: 8px; color: white; font-size: 16px; cursor: pointer; transition: opacity 0.3s; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ========== VIDEO PREVIEW ========== */
+.video-preview { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 25px; text-align: center; }
+.video-preview h3 { margin-bottom: 20px; color: #00f2ea; }
+.tiktok-phone { width: 280px; height: 500px; margin: 0 auto; background: #000; border-radius: 30px; border: 8px solid #222; position: relative; overflow: hidden; }
+.phone-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 25px; background: #222; border-radius: 0 0 15px 15px; z-index: 10; }
+.phone-screen { width: 100%; height: 100%; background: #1a1a2e; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px 15px 15px; position: relative; }
+.video-content { width: 100%; height: 75%; background: #2a2a3e; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; }
+.video-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: rgba(0,0,0,0.7); }
+.video-title { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
+.video-source { font-size: 11px; color: #00f2ea; }
+.video-actions { position: absolute; right: 8px; bottom: 80px; display: flex; flex-direction: column; gap: 15px; }
+.action-btn { width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+/* ========== LIBRARY PANEL ========== */
+.library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+.video-card { background: #111118; border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: transform 0.3s; cursor: pointer; position: relative; }
+.video-card:hover { transform: scale(1.03); border-color: #ff0050; }
+.video-thumb { width: 100%; aspect-ratio: 9/16; background: #2a2a3e; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+.play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+.video-card:hover .play-overlay { opacity: 1; }
+.play-icon { width: 50px; height: 50px; background: rgba(255,0,80,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.video-card-info { padding: 12px; }
+.video-card-title { font-size: 13px; font-weight: bold; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.video-card-meta { font-size: 11px; color: #666; display: flex; justify-content: space-between; }
+.video-card-actions { display: flex; gap: 5px; padding: 0 12px 12px; }
+.video-card-actions button { flex: 1; padding: 6px; border: 1px solid #333; background: transparent; color: #fff; border-radius: 6px; cursor: pointer; font-size: 11px; transition: all 0.3s; }
+.video-card-actions button:hover { background: #ff0050; border-color: #ff0050; }
+
+/* ========== VIDEO MODAL ========== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.active { display: flex; }
+.modal-content { background: #111118; border-radius: 16px; max-width: 400px; width: 100%; overflow: hidden; }
+.modal-header { padding: 15px 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 16px; }
+.modal-close { background: none; border: none; color: #888; font-size: 24px; cursor: pointer; }
+.modal-body { padding: 20px; }
+.modal-video-container { width: 100%; aspect-ratio: 9/16; background: #000; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 15px; position: relative; overflow: hidden; }
+.modal-video-container video { width: 100%; height: 100%; object-fit: cover; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: opacity 0.3s; }
+.modal-actions .btn-download { background: #00ff88; color: #000; }
+.modal-actions .btn-publish { background: #ff0050; color: #fff; }
+.modal-actions button:hover { opacity: 0.9; }
+
+/* ========== MONETIZATION PANEL ========== */
+.monetization-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.money-card { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 20px; }
+.money-card h3 { font-size: 14px; color: #888; margin-bottom: 10px; text-transform: uppercase; }
+.money-value { font-size: 2rem; font-weight: bold; color: #00ff88; }
+.money-card.subtitle { color: #ffaa00; }
+.money-card.gifts { color: #ff66cc; }
+.money-card.shop { color: #00f2ea; }
+
+.calculator { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 25px; max-width: 600px; margin: 0 auto 30px; }
+.calculator h3 { margin-bottom: 20px; color: #ff0050; text-align: center; }
+.calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+.calc-result { background: #1a1a2e; border-radius: 12px; padding: 20px; text-align: center; margin-top: 20px; }
+.calc-result h4 { color: #888; margin-bottom: 10px; }
+.calc-result .big-number { font-size: 2.5rem; font-weight: bold; color: #00ff88; }
+
+.tier-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.tier-table th, .tier-table td { padding: 12px; text-align: left; border-bottom: 1px solid #222; }
+.tier-table th { color: #ff0050; font-size: 13px; text-transform: uppercase; }
+.tier-table td { font-size: 14px; }
+.tier-table tr:hover { background: #1a1a2e; }
+
+/* ========== CONFIG PANEL ========== */
+.config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.config-card { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 20px; }
+.config-card h3 { margin-bottom: 15px; color: #00f2ea; font-size: 16px; }
+.config-card p { color: #888; font-size: 13px; margin-bottom: 15px; line-height: 1.5; }
+.config-status { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-bottom: 10px; }
+.config-status.active { background: rgba(0,255,136,0.1); color: #00ff88; }
+.config-status.inactive { background: rgba(255,68,68,0.1); color: #ff4444; }
+
+/* ========== PROGRESS / TOAST ========== */
+.progress-bar { width: 100%; height: 4px; background: #222; border-radius: 2px; margin: 15px 0; overflow: hidden; display: none; }
+.progress-bar.active { display: block; }
+.progress-fill { height: 100%; background: #ff0050; border-radius: 2px; width: 0%; transition: width 0.3s; }
+.toast { position: fixed; bottom: 30px; right: 30px; background: #1a1a2e; border: 1px solid #333; border-radius: 12px; padding: 15px 20px; z-index: 3000; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: #00ff88; }
+.toast.error { border-color: #ff4444; }
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0a0a0f; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+</style>
+</head>
+<body>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-left">
+    <div class="platform-status">
+      <span class="platform-dot online" id="platformDot"></span>
+      <span id="platformText">ONLINE</span>
+    </div>
+    <div class="user-info" id="userInfo">Usuário: Convidado</div>
+  </div>
+  <div class="api-indicators" id="apiIndicators">
+    <span class="api-badge warn" id="apiNews">NewsAPI</span>
+    <span class="api-badge error" id="apiTikTok">TikTok API</span>
+    <span class="api-badge error" id="apiEleven">ElevenLabs</span>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>NewsToTikTok Studio Pro</h1>
+  <p>Transforme notícias em vídeos virais para o TikTok</p>
+</div>
+
+<!-- TRENDING BANNER -->
+<div class="trending-banner">
+  <div class="trending-label">🔥 TRENDING AGORA</div>
+  <div class="trending-scroll" id="trendingScroll"></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('news')">📰 Notícias</button>
+  <button class="tab" onclick="switchTab('generator')">🎬 Gerar Vídeo</button>
+  <button class="tab" onclick="switchTab('library')">📚 Biblioteca</button>
+  <button class="tab" onclick="switchTab('monetization')">💰 Monetização</button>
+  <button class="tab" onclick="switchTab('config')">⚙️ Config</button>
+</div>
+
+<!-- PANEL: NEWS -->
+<div class="panel active" id="panel-news">
+  <div class="news-controls">
+    <select id="countrySelect" onchange="filterNews()">
+      <option value="all">🌍 Todas as regiões</option>
+      <option value="br">🇧🇷 Brasil</option>
+      <option value="us">🇺🇸 Estados Unidos</option>
+      <option value="gb">🇬🇧 Reino Unido</option>
+      <option value="ca">🇨🇦 Canadá</option>
+      <option value="au">🇦🇺 Austrália</option>
+      <option value="de">🇩🇪 Alemanha</option>
+      <option value="fr">🇫🇷 França</option>
+      <option value="jp">🇯🇵 Japão</option>
+      <option value="in">🇮🇳 Índia</option>
+      <option value="mx">🇲🇽 México</option>
+      <option value="ar">🇦🇷 Argentina</option>
+      <option value="pt">🇵🇹 Portugal</option>
+    </select>
+    <input type="text" id="searchNews" placeholder="🔍 Buscar notícias..." onkeyup="filterNews()">
+    <button onclick="refreshNews()">🔄 Atualizar</button>
+  </div>
+  <div class="news-grid" id="newsGrid"></div>
+</div>
+
+<!-- PANEL: GENERATOR -->
+<div class="panel" id="panel-generator">
+  <div class="generator-layout">
+    <div class="generator-form">
+      <h3>🎬 Configurar Vídeo</h3>
+
+      <div class="auto-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoGenerate" onchange="toggleAuto()">
+          <span class="toggle-slider"></span>
+        </label>
+        <span>Modo IA: Gerar automaticamente do Top 3 Trends</span>
+      </div>
+
+      <div class="form-group">
+        <label>Título do Vídeo</label>
+        <input type="text" id="videoTitle" placeholder="Ex: Notícia bombástica do dia!">
+      </div>
+
+      <div class="form-group">
+        <label>Script / Legendas</label>
+        <textarea id="videoScript" placeholder="Cole aqui o texto da notícia..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Fonte da Notícia</label>
+        <input type="text" id="newsSource" placeholder="Ex: G1, CNN, BBC...">
+      </div>
+
+      <div class="form-group">
+        <label>Link da Notícia Original</label>
+        <input type="url" id="newsLink" placeholder="https://...">
+      </div>
+
+      <div class="form-group">
+        <label>Estilo de Vídeo</label>
+        <select id="videoStyle">
+          <option value="news">📰 Noticiário</option>
+          <option value="narrator">🎙️ Narrador</option>
+          <option value="text">📝 Texto na Tela</option>
+          <option value="reaction">😲 Reação</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Voz (TTS)</label>
+        <select id="voiceSelect">
+          <option value="pt-br-female">🇧🇷 Feminina (PT-BR)</option>
+          <option value="pt-br-male">🇧🇷 Masculina (PT-BR)</option>
+          <option value="en-us-female">🇺🇸 Feminina (EN)</option>
+          <option value="en-us-male">🇺🇸 Masculina (EN)</option>
+        </select>
+      </div>
+
+      <div class="progress-bar" id="genProgress">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <button class="btn-primary" id="btnGenerate" onclick="generateVideo()">
+        🚀 Gerar Vídeo para TikTok
+      </button>
+      <p style="text-align:center; margin-top:10px; font-size:12px; color:#666;">
+        Vídeos hoje: <span id="dailyCount">0</span>/10
+      </p>
+    </div>
+
+    <div class="video-preview">
+      <h3>📱 Preview no TikTok</h3>
+      <div class="tiktok-phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="video-content" id="previewContent">
+            <div style="color:#666; font-size:14px;">Seu vídeo aparecerá aqui</div>
+          </div>
+          <div class="video-overlay">
+            <div class="video-title" id="previewTitle">Título do Vídeo</div>
+            <div class="video-source" id="previewSource">@newstotiktok</div>
+          </div>
+          <div class="video-actions">
+            <div class="action-btn">❤️</div>
+            <div class="action-btn">💬</div>
+            <div class="action-btn">↗️</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL: LIBRARY -->
+<div class="panel" id="panel-library">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h3 style="color:#ff0050;">📚 Sua Biblioteca de Vídeos</h3>
+    <div style="font-size:13px; color:#888;">
+      <span id="libCount">0</span> vídeos gerados
+    </div>
+  </div>
+  <div class="library-grid" id="libraryGrid"></div>
+</div>
+
+<!-- PANEL: MONETIZATION -->
+<div class="panel" id="panel-monetization">
+  <div class="monetization-grid">
+    <div class="money-card">
+      <h3>💵 Ganhos Totais (Estimativa)</h3>
+      <div class="money-value" id="totalEarnings">R$ 0,00</div>
+    </div>
+    <div class="money-card">
+      <h3>🎁 Creator Rewards</h3>
+      <div class="money-value subtitle" id="creatorRewards">R$ 0,00</div>
+      <p style="font-size:12px; color:#666; margin-top:5px;">$0.40-$1.00 por 1K views qualificadas</p>
+    </div>
+    <div class="money-card">
+      <h3>🤝 Brand Deals (Estimativa)</h3>
+      <div class="money-value gifts" id="brandDeals">R$ 0,00</div>
+    </div>
+    <div class="money-card">
+      <h3>🛍️ TikTok Shop</h3>
+      <div class="money-value shop" id="shopEarnings">R$ 0,00</div>
+      <p style="font-size:12px; color:#666; margin-top:5px;">5-30% comissão por venda</p>
+    </div>
+  </div>
+
+  <div class="calculator">
+    <h3>🧮 Calculadora de Ganhos TikTok</h3>
+    <div class="calc-row">
+      <div class="form-group">
+        <label>Seguidores</label>
+        <input type="number" id="calcFollowers" placeholder="10000" oninput="calculateEarnings()">
+      </div>
+      <div class="form-group">
+        <label>Views médios/vídeo</label>
+        <input type="number" id="calcViews" placeholder="5000" oninput="calculateEarnings()">
+      </div>
+    </div>
+    <div class="calc-row">
+      <div class="form-group">
+        <label>Vídeos/semana</label>
+        <input type="number" id="calcVideos" placeholder="7" oninput="calculateEarnings()">
+      </div>
+      <div class="form-group">
+        <label>Nicho</label>
+        <select id="calcNiche" onchange="calculateEarnings()">
+          <option value="1.0">Geral</option>
+          <option value="1.5">Finanças 💰</option>
+          <option value="1.3">Tecnologia 💻</option>
+          <option value="1.2">Saúde 🏥</option>
+          <option value="0.9">Entretenimento 🎭</option>
+          <option value="1.1">Educação 📚</option>
+          <option value="1.4">Negócios 💼</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Taxa de Engajamento (%)</label>
+      <input type="range" id="calcEngagement" min="1" max="20" value="5" oninput="calculateEarnings()">
+      <div style="text-align:center; color:#00f2ea; margin-top:5px;"><span id="engagementValue">5</span>%</div>
+    </div>
+    <div class="calc-result">
+      <h4>Estimativa Mensal (R$)</h4>
+      <div class="big-number" id="monthlyEstimate">R$ 0</div>
+      <p style="font-size:12px; color:#666; margin-top:10px;">Inclui Creator Rewards + Brand Deals estimados</p>
+    </div>
+  </div>
+
+  <div style="background:#111118; border:1px solid #222; border-radius:12px; padding:25px;">
+    <h3 style="color:#ff0050; margin-bottom:20px;">📊 Tiers de Brand Deals 2026</h3>
+    <table class="tier-table">
+      <thead>
+        <tr><th>Tier</th><th>Seguidores</th><th>Valor por Post (R$)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>🌱 Nano</td><td>1K - 10K</td><td>R$ 25 - 125</td></tr>
+        <tr><td>🌿 Micro</td><td>10K - 100K</td><td>R$ 125 - 1.250</td></tr>
+        <tr><td>🌳 Mid</td><td>100K - 500K</td><td>R$ 1.250 - 6.250</td></tr>
+        <tr><td>🚀 Macro</td><td>500K - 1M</td><td>R$ 6.250 - 12.500</td></tr>
+        <tr><td>⭐ Mega</td><td>1M+</td><td>R$ 12.500+</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px; color:#666; margin-top:15px;">
+      * Valores baseados em médias de mercado para o Brasil em 2026. Podem variar conforme nicho, engajamento e marca.
+    </p>
+  </div>
+</div>
+
+<!-- PANEL: CONFIG -->
+<div class="panel" id="panel-config">
+  <div class="config-grid">
+    <div class="config-card">
+      <h3>📰 NewsAPI</h3>
+      <span class="config-status inactive" id="statusNews">Não configurado</span>
+      <p>Fonte principal de notícias globais. Grátis: 100 requisições/dia.</p>
+      <div class="form-group">
+        <label>API Key</label>
+        <input type="text" id="keyNews" placeholder="Sua chave da NewsAPI">
+      </div>
+      <button class="btn-primary" onclick="saveApiKey('news')" style="margin-top:10px;">Salvar</button>
+    </div>
+
+    <div class="config-card">
+      <h3>🎵 TikTok API</h3>
+      <span class="config-status inactive" id="statusTikTok">Não configurado</span>
+      <p>Publicação direta no TikTok. Requer auditoria no developers.tiktok.com</p>
+      <div class="form-group">
+        <label>Client Key</label>
+        <input type="text" id="keyTikTok" placeholder="Client Key">
+      </div>
+      <div class="form-group">
+        <label>Client Secret</label>
+        <input type="password" id="secretTikTok" placeholder="Client Secret">
+      </div>
+      <button class="btn-primary" onclick="saveApiKey('tiktok')" style="margin-top:10px;">Salvar</button>
+    </div>
+
+    <div class="config-card">
+      <h3>🗣️ ElevenLabs</h3>
+      <span class="config-status inactive" id="statusEleven">Não configurado</span>
+      <p>TTS em português brasileiro. Grátis: 10K caracteres/mês.</p>
+      <div class="form-group">
+        <label>API Key</label>
+        <input type="text" id="keyEleven" placeholder="Sua chave da ElevenLabs">
+      </div>
+      <button class="btn-primary" onclick="saveApiKey('eleven')" style="margin-top:10px;">Salvar</button>
+    </div>
+
+    <div class="config-card">
+      <h3>📸 Pexels</h3>
+      <span class="config-status inactive" id="statusPexels">Não configurado</span>
+      <p>Imagens e vídeos stock gratuitos para usar nos vídeos.</p>
+      <div class="form-group">
+        <label>API Key</label>
+        <input type="text" id="keyPexels" placeholder="Sua chave do Pexels">
+      </div>
+      <button class="btn-primary" onclick="saveApiKey('pexels')" style="margin-top:10px;">Salvar</button>
+    </div>
+
+    <div class="config-card">
+      <h3>📡 GNews (Backup)</h3>
+      <span class="config-status inactive" id="statusGNews">Não configurado</span>
+      <p>Fonte alternativa de notícias caso NewsAPI esteja indisponível.</p>
+      <div class="form-group">
+        <label>API Key</label>
+        <input type="text" id="keyGNews" placeholder="Sua chave do GNews">
+      </div>
+      <button class="btn-primary" onclick="saveApiKey('gnews')" style="margin-top:10px;">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO MODAL -->
+<div class="modal-overlay" id="videoModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Preview do Vídeo</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-video-container" id="modalVideoContainer">
+        <div style="color:#666;">Preview do vídeo</div>
+      </div>
+      <div style="margin-bottom:15px;">
+        <a href="#" id="modalNewsLink" target="_blank" style="color:#ff0050; font-size:13px; text-decoration:none;">🔗 Ver notícia original</a>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-download" onclick="downloadVideo()">⬇️ Baixar MP4</button>
+        <button class="btn-publish" onclick="publishToTikTok()">📤 Publicar no TikTok</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== STATE ====================
+let videos = JSON.parse(localStorage.getItem('ntt_videos') || '[]');
+let autoGenerateEnabled = false;
+let dailyCount = parseInt(localStorage.getItem('ntt_dailyCount') || '0');
+let lastReset = localStorage.getItem('ntt_lastReset') || new Date().toDateString();
+const MAX_DAILY_VIDEOS = 10;
+
+if (lastReset !== new Date().toDateString()) {
+  dailyCount = 0;
+  localStorage.setItem('ntt_lastReset', new Date().toDateString());
+  localStorage.setItem('ntt_dailyCount', '0');
+}
+
+let apiKeys = JSON.parse(localStorage.getItem('ntt_apiKeys') || '{}');
+let currentModalVideo = null;
+
+// ==================== SAMPLE NEWS ====================
+const sampleNews = [
+  { title: "Brasil bate recorde de geração de energia solar em 2026", description: "O país atingiu 45GW de capacidade instalada, consolidando-se como líder na América Latina.", source: "G1", country: "br", url: "https://g1.globo.com/economia/agronegocios/noticia/2026/01/15/brasil-solar-recorde.ghtml", category: "tech" },
+  { title: "Novo iPhone 17 Pro: leaks revelam câmera sob o display", description: "Apple pode eliminar o notch definitivamente já no próximo modelo, segundo analistas.", source: "TechCrunch", country: "us", url: "https://techcrunch.com/2026/01/15/iphone-17-pro-leaks", category: "tech" },
+  { title: "TikTok lança ferramenta de monetização para criadores no Brasil", description: "A novidade permite que criadores ganhem diretamente dos vídeos com mais de 1 minuto.", source: "CNN Brasil", country: "br", url: "https://cnnbrasil.com.br/business/tiktok-monetizacao-brasil-2026", category: "business" },
+  { title: "Descoberto novo planeta potencialmente habitável a 20 anos-luz", description: "Telescópio James Webb detecta atmosfera com vapor d'água em exoplaneta próximo.", source: "BBC", country: "gb", url: "https://bbc.com/news/science-environment-2026-exoplanet", category: "science" },
+  { title: "Banco Central reduz Selic para 9,5% ao ano", description: "Quarta queda consecutiva busca estimular a economia sem pressionar a inflação.", source: "Valor Econômico", country: "br", url: "https://valor.globo.com/financas/noticia/2026/01/15/selic-95.ghtml", category: "finance" },
+  { title: "OpenAI anuncia GPT-5 com raciocínio multimodal avançado", description: "Novo modelo promete revolucionar assistentes virtuais com compreensão de vídeo em tempo real.", source: "The Verge", country: "us", url: "https://theverge.com/2026/1/15/openai-gpt5-announcement", category: "tech" },
+  { title: "Alemanha aprova lei de semana de trabalho de 4 dias", description: "Medida experimental começa em setembro e pode ser adotada por outras nações da UE.", source: "DW", country: "de", url: "https://dw.com/en/germany-4-day-work-week-law-2026", category: "business" },
+  { title: "Japão testa trem-bala que atinge 600km/h em pista comercial", description: "Nova geração do Shinkansen promete reduzir viagem Tóquio-Osaka para 1h15min.", source: "NHK", country: "jp", url: "https://nhk.or.jp/news/shinkansen-600kmh-2026", category: "tech" },
+  { title: "Cientistas desenvolvem bateria de carro que carrega em 5 minutos", description: "Tecnologia de estado sólido promete revolucionar mercado de veículos elétricos.", source: "Reuters", country: "us", url: "https://reuters.com/technology/battery-5-min-charge-2026", category: "tech" },
+  { title: "Brasil se classifica para final da Copa do Mundo 2026", description: "Seleção vence Alemanha nas semifinais e enfrenta Argentina na decisão no México.", source: "ESPN", country: "br", url: "https://espn.com.br/futebol/copa-2026/brasil-final", category: "sports" },
+  { title: "Novo tratamento elimina células de câncer em 48 horas", description: "Terapia genética experimental mostra resultados promissores em ensaios clínicos.", source: "The Lancet", country: "gb", url: "https://thelancet.com/cancer-treatment-48h-2026", category: "health" },
+  { title: "Tesla lança carro elétrico de R$ 80 mil no Brasil", description: "Modelo compacto promete democratizar a mobilidade elétrica no país.", source: "Forbes", country: "br", url: "https://forbes.com.br/forbes-mobility/2026/tesla-80k-brasil", category: "business" }
+];
+
+const trendingTags = [
+  "#NotíciasDeHoje", "#Tecnologia2026", "#BrasilNoTopo", "#IARevolution",
+  "#EconomiaBrasil", "#MundoTech", "#NotíciasViral", "#FiquePorDentro",
+  "#BreakingNews", "#Inovação", "#Futuro", "#NotíciasRápidas"
+];
+
+// ==================== INIT ====================
+window.addEventListener('load', () => {
+  renderNews(sampleNews);
+  updateTrendingBanner(sampleNews);
+  updateLibrary();
+  updatePlatformStatus();
+  updateApiStatusDisplay();
+  updateDailyCount();
+  loadApiKeys();
+
+  // Auto-refresh
+  setInterval(() => {
+    if (autoGenerateEnabled && dailyCount < MAX_DAILY_VIDEOS) {
+      console.log('IA: Verificando novas tendencias...');
+    }
+  }, 300000);
+
+  setInterval(() => {
+    updatePlatformStatus();
+    updateApiStatusDisplay();
+  }, 10000);
+});
+
+// ==================== TABS ====================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ==================== NEWS ====================
+function renderNews(news) {
+  const grid = document.getElementById('newsGrid');
+  grid.innerHTML = news.map(n => `
+    <div class="news-card" data-country="${n.country}">
+      <h3>${n.title}</h3>
+      <p>${n.description}</p>
+      <div class="news-meta">
+        <span class="news-source">${n.source}</span>
+        <a href="${n.url}" target="_blank" class="news-link">Ver notícia completa →</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterNews() {
+  const country = document.getElementById('countrySelect').value;
+  const search = document.getElementById('searchNews').value.toLowerCase();
+  let filtered = sampleNews;
+
+  if (country !== 'all') {
+    filtered = filtered.filter(n => n.country === country);
+  }
+  if (search) {
+    filtered = filtered.filter(n => n.title.toLowerCase().includes(search) || n.description.toLowerCase().includes(search));
+  }
+  renderNews(filtered);
+}
+
+function refreshNews() {
+  showToast('🔄 Atualizando notícias...', 'success');
+  setTimeout(() => {
+    renderNews(sampleNews.sort(() => Math.random() - 0.5));
+    showToast('✅ Notícias atualizadas!', 'success');
+  }, 1500);
+}
+
+function updateTrendingBanner(news) {
+  const scroll = document.getElementById('trendingScroll');
+  const tags = [...trendingTags, ...news.slice(0, 5).map(n => '#' + n.title.split(' ').slice(0, 3).join(''))];
+  scroll.innerHTML = tags.map(t => `<span class="trend-tag" onclick="useTrend('${t}')">${t}</span>`).join('');
+}
+
+function useTrend(tag) {
+  document.getElementById('videoTitle').value = tag.replace('#', '') + ' - Notícia do Dia!';
+  switchTab('generator');
+  document.querySelectorAll('.tab')[1].classList.add('active');
+}
+
+// ==================== PLATFORM STATUS ====================
+function updatePlatformStatus() {
+  const isOnline = navigator.onLine;
+  const dot = document.getElementById('platformDot');
+  const text = document.getElementById('platformText');
+
+  if (isOnline) {
+    dot.className = 'platform-dot online';
+    text.textContent = 'ONLINE';
+  } else {
+    dot.className = 'platform-dot offline';
+    text.textContent = 'OFFLINE - Modo Local';
+  }
+}
+
+function updateApiStatusDisplay() {
+  const apis = ['news', 'tiktok', 'eleven'];
+  apis.forEach(api => {
+    const el = document.getElementById('api' + api.charAt(0).toUpperCase() + api.slice(1));
+    const key = apiKeys[api + 'Key'] || apiKeys[api + 'ClientKey'];
+    if (key) {
+      el.className = 'api-badge ok';
+      el.textContent = el.textContent.split(' ')[0] + ' ✓';
+    } else {
+      el.className = 'api-badge error';
+      el.textContent = el.textContent.split(' ')[0] + ' ✗';
+    }
+  });
+}
+
+// ==================== VIDEO GENERATION ====================
+function toggleAuto() {
+  autoGenerateEnabled = document.getElementById('autoGenerate').checked;
+  showToast(autoGenerateEnabled ? '🤖 Modo IA ativado!' : '👤 Modo manual', 'success');
+}
+
+function updateDailyCount() {
+  document.getElementById('dailyCount').textContent = dailyCount;
+}
+
+function generateVideo() {
+  if (dailyCount >= MAX_DAILY_VIDEOS) {
+    showToast('❌ Limite diário atingido (10 vídeos)', 'error');
+    return;
+  }
+
+  const title = document.getElementById('videoTitle').value || 'Notícia do Dia';
+  const script = document.getElementById('videoScript').value || 'Notícia em destaque hoje!';
+  const source = document.getElementById('newsSource').value || 'NewsToTikTok';
+  const link = document.getElementById('newsLink').value || '';
+  const style = document.getElementById('videoStyle').value;
+
+  const progressBar = document.getElementById('genProgress');
+  const progressFill = document.getElementById('progressFill');
+  const btn = document.getElementById('btnGenerate');
+
+  btn.disabled = true;
+  progressBar.classList.add('active');
+
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += 10;
+    progressFill.style.width = progress + '%';
+
+    if (progress >= 100) {
+      clearInterval(interval);
+
+      const video = {
+        id: Date.now(),
+        title: title,
+        script: script,
+        source: source,
+        link: link,
+        style: style,
+        date: new Date().toLocaleString('pt-BR'),
+        thumbnail: generateThumbnail(title),
+        views: 0,
+        likes: 0
+      };
+
+      videos.unshift(video);
+      localStorage.setItem('ntt_videos', JSON.stringify(videos));
+
+      dailyCount++;
+      localStorage.setItem('ntt_dailyCount', String(dailyCount));
+      updateDailyCount();
+
+      updatePreview(title, source);
+      updateLibrary();
+
+      progressBar.classList.remove('active');
+      progressFill.style.width = '0%';
+      btn.disabled = false;
+
+      showToast('✅ Vídeo gerado com sucesso!', 'success');
+    }
+  }, 200);
+}
+
+function generateThumbnail(title) {
+  const colors = ['#ff0050', '#00f2ea', '#ffaa00', '#00ff88', '#ff66cc'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  return `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="356"><rect fill="${encodeURIComponent(color)}" width="200" height="356"/><text fill="white" font-size="20" x="50%" y="50%" text-anchor="middle" font-family="Arial">${encodeURIComponent(title.substring(0, 20))}</text></svg>`;
+}
+
+function updatePreview(title, source) {
+  document.getElementById('previewTitle').textContent = title;
+  document.getElementById('previewSource').textContent = '@' + source.toLowerCase().replace(/\s/g, '');
+  document.getElementById('previewContent').innerHTML = `<div style="color:#fff; font-size:18px; text-align:center; padding:20px;">${title}</div>`;
+}
+
+// ==================== LIBRARY ====================
+function updateLibrary() {
+  const grid = document.getElementById('libraryGrid');
+  document.getElementById('libCount').textContent = videos.length;
+
+  if (videos.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#666; padding:40px;">Nenhum vídeo gerado ainda. Vá para "Gerar Vídeo" para começar!</div>';
+    return;
+  }
+
+  grid.innerHTML = videos.map(v => `
+    <div class="video-card" onclick="openVideoModal(${v.id})">
+      <div class="video-thumb" style="background: #2a2a3e;">
+        <div style="color:#fff; font-size:12px; text-align:center; padding:10px;">${v.title.substring(0, 40)}...</div>
+        <div class="play-overlay">
+          <div class="play-icon">▶</div>
+        </div>
+      </div>
+      <div class="video-card-info">
+        <div class="video-card-title">${v.title}</div>
+        <div class="video-card-meta">
+          <span>${v.source}</span>
+          <span>${v.date.split(' ')[0]}</span>
+        </div>
+      </div>
+      <div class="video-card-actions">
+        <button onclick="event.stopPropagation(); downloadVideoById(${v.id})">⬇️ Baixar</button>
+        <button onclick="event.stopPropagation(); deleteVideo(${v.id})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openVideoModal(id) {
+  const video = videos.find(v => v.id === id);
+  if (!video) return;
+
+  currentModalVideo = video;
+  document.getElementById('modalTitle').textContent = video.title;
+  document.getElementById('modalNewsLink').href = video.link || '#';
+  document.getElementById('modalNewsLink').style.display = video.link ? 'block' : 'none';
+
+  const container = document.getElementById('modalVideoContainer');
+  container.innerHTML = `
+    <div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background: #1a1a2e;">
+      <div style="color:#fff; font-size:20px; text-align:center; padding:30px; font-weight:bold;">${video.title}</div>
+      <div style="color:#00f2ea; font-size:14px;">@${video.source}</div>
+      <div style="margin-top:20px; color:#666; font-size:12px;">${video.script.substring(0, 100)}...</div>
+      <button onclick="playVideoDemo()" style="margin-top:30px; padding:12px 30px; background:#ff0050; border:none; border-radius:25px; color:white; cursor:pointer; font-size:16px;">▶ Reproduzir</button>
+    </div>
+  `;
+
+  document.getElementById('videoModal').classList.add('active');
+}
+
+function playVideoDemo() {
+  const container = document.getElementById('modalVideoContainer');
+  container.innerHTML = `
+    <div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background: #000; position:relative;">
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:24px; animation: pulse 1s infinite;">▶</div>
+      <div style="position:absolute; bottom:60px; left:15px; right:60px;">
+        <div style="color:#fff; font-size:16px; font-weight:bold;">${currentModalVideo.title}</div>
+        <div style="color:#00f2ea; font-size:12px;">@${currentModalVideo.source}</div>
+      </div>
+      <div style="position:absolute; right:10px; bottom:80px; display:flex; flex-direction:column; gap:15px; align-items:center;">
+        <div style="width:40px; height:40px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center;">❤️</div>
+        <div style="width:40px; height:40px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center;">💬</div>
+        <div style="width:40px; height:40px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center;">↗️</div>
+      </div>
+    </div>
+  `;
+}
+
+function closeModal() {
+  document.getElementById('videoModal').classList.remove('active');
+  currentModalVideo = null;
+}
+
+function downloadVideo() {
+  if (!currentModalVideo) return;
+
+  // Create a simple video blob simulation
+  const videoData = {
+    title: currentModalVideo.title,
+    script: currentModalVideo.script,
+    source: currentModalVideo.source,
+    date: currentModalVideo.date,
+    link: currentModalVideo.link
+  };
+
+  const blob = new Blob([JSON.stringify(videoData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `newstotiktok_${currentModalVideo.id}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('⬇️ Download iniciado! (JSON com dados do vídeo)', 'success');
+}
+
+function downloadVideoById(id) {
+  const video = videos.find(v => v.id === id);
+  if (!video) return;
+  currentModalVideo = video;
+  downloadVideo();
+}
+
+function publishToTikTok() {
+  if (!apiKeys.tiktokClientKey) {
+    showToast('❌ Configure a TikTok API primeiro!', 'error');
+    switchTab('config');
+    return;
+  }
+  showToast('📤 Publicando no TikTok... (simulação)', 'success');
+}
+
+function deleteVideo(id) {
+  videos = videos.filter(v => v.id !== id);
+  localStorage.setItem('ntt_videos', JSON.stringify(videos));
+  updateLibrary();
+  showToast('🗑️ Vídeo removido', 'success');
+}
+
+// ==================== MONETIZATION ====================
+function calculateEarnings() {
+  const followers = parseInt(document.getElementById('calcFollowers').value) || 0;
+  const views = parseInt(document.getElementById('calcViews').value) || 0;
+  const videosPerWeek = parseInt(document.getElementById('calcVideos').value) || 0;
+  const nicheMultiplier = parseFloat(document.getElementById('calcNiche').value) || 1;
+  const engagement = parseInt(document.getElementById('calcEngagement').value) || 5;
+
+  document.getElementById('engagementValue').textContent = engagement;
+
+  const weeklyViews = views * videosPerWeek;
+  const monthlyViews = weeklyViews * 4.3;
+
+  // Creator Rewards: $0.40-$1.00 per 1K qualified views
+  const creatorRewardUSD = (monthlyViews / 1000) * 0.7 * nicheMultiplier;
+  const creatorRewardBRL = creatorRewardUSD * 5.8;
+
+  // Brand Deals estimate based on followers
+  let brandDealBRL = 0;
+  if (followers >= 1000000) brandDealBRL = 12500 * videosPerWeek * 0.3;
+  else if (followers >= 500000) brandDealBRL = 6250 * videosPerWeek * 0.2;
+  else if (followers >= 100000) brandDealBRL = 1250 * videosPerWeek * 0.15;
+  else if (followers >= 10000) brandDealBRL = 125 * videosPerWeek * 0.1;
+  else if (followers >= 1000) brandDealBRL = 25 * videosPerWeek * 0.05;
+
+  const totalBRL = creatorRewardBRL + brandDealBRL;
+
+  document.getElementById('monthlyEstimate').textContent = 'R$ ' + Math.round(totalBRL).toLocaleString('pt-BR');
+  document.getElementById('totalEarnings').textContent = 'R$ ' + Math.round(totalBRL).toLocaleString('pt-BR');
+  document.getElementById('creatorRewards').textContent = 'R$ ' + Math.round(creatorRewardBRL).toLocaleString('pt-BR');
+  document.getElementById('brandDeals').textContent = 'R$ ' + Math.round(brandDealBRL).toLocaleString('pt-BR');
+}
+
+// ==================== CONFIG ====================
+function loadApiKeys() {
+  apiKeys = JSON.parse(localStorage.getItem('ntt_apiKeys') || '{}');
+
+  if (apiKeys.newsKey) {
+    document.getElementById('keyNews').value = apiKeys.newsKey;
+    document.getElementById('statusNews').textContent = 'Configurado';
+    document.getElementById('statusNews').className = 'config-status active';
+  }
+  if (apiKeys.tiktokClientKey) {
+    document.getElementById('keyTikTok').value = apiKeys.tiktokClientKey;
+    document.getElementById('statusTikTok').textContent = 'Configurado';
+    document.getElementById('statusTikTok').className = 'config-status active';
+  }
+  if (apiKeys.elevenKey) {
+    document.getElementById('keyEleven').value = apiKeys.elevenKey;
+    document.getElementById('statusEleven').textContent = 'Configurado';
+    document.getElementById('statusEleven').className = 'config-status active';
+  }
+  if (apiKeys.pexelsKey) {
+    document.getElementById('keyPexels').value = apiKeys.pexelsKey;
+    document.getElementById('statusPexels').textContent = 'Configurado';
+    document.getElementById('statusPexels').className = 'config-status active';
+  }
+  if (apiKeys.gnewsKey) {
+    document.getElementById('keyGNews').value = apiKeys.gnewsKey;
+    document.getElementById('statusGNews').textContent = 'Configurado';
+    document.getElementById('statusGNews').className = 'config-status active';
+  }
+}
+
+function saveApiKey(api) {
+  const keys = JSON.parse(localStorage.getItem('ntt_apiKeys') || '{}');
+
+  switch(api) {
+    case 'news':
+      keys.newsKey = document.getElementById('keyNews').value;
+      break;
+    case 'tiktok':
+      keys.tiktokClientKey = document.getElementById('keyTikTok').value;
+      keys.tiktokClientSecret = document.getElementById('secretTikTok').value;
+      break;
+    case 'eleven':
+      keys.elevenKey = document.getElementById('keyEleven').value;
+      break;
+    case 'pexels':
+      keys.pexelsKey = document.getElementById('keyPexels').value;
+      break;
+    case 'gnews':
+      keys.gnewsKey = document.getElementById('keyGNews').value;
+      break;
+  }
+
+  localStorage.setItem('ntt_apiKeys', JSON.stringify(keys));
+  apiKeys = keys;
+  loadApiKeys();
+  updateApiStatusDisplay();
+  showToast(`✅ API ${api.toUpperCase()} salva!`, 'success');
+}
+
+// ==================== TOAST ====================
+function showToast(message, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = 'toast show ' + type;
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Close modal on outside click
+document.getElementById('videoModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('videoModal')) closeModal();
+});
+</script>
+</body>
+</html>
