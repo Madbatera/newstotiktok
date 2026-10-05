@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="pt-BR" data-resolution="square">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <title>Tower Control — LinkedIn</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #081322;
+        --bg-2: #0d1d33;
+        --fg: #eef3fb;
+        --muted: #9db0ca;
+        --accent: #3b8bf5;
+        --accent-soft: rgba(59, 139, 245, 0.16);
+        --green: #2fb344;
+        --orange: #f76707;
+        --red: #e5484d;
+        --display: "Montserrat", sans-serif;
+        --mono: "IBM Plex Mono", monospace;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--display);
+      }
+
+      /* ---------- persistent background: control-room grid + radar ---------- */
+      .bg-layer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      #bg-grid {
+        background-image:
+          linear-gradient(rgba(157, 176, 202, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(157, 176, 202, 0.06) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+      #bg-glow {
+        background: radial-gradient(circle at 78% 18%, rgba(59, 139, 245, 0.22), transparent 55%),
+          radial-gradient(circle at 10% 95%, rgba(59, 139, 245, 0.12), transparent 50%);
+      }
+      #radar {
+        position: absolute;
+        width: 1300px;
+        height: 1300px;
+        right: -560px;
+        top: -560px;
+        opacity: 0.55;
+      }
+      #radar svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #sweep-line {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 6px;
+        background: linear-gradient(180deg, transparent, var(--accent), transparent);
+        box-shadow: 0 0 40px 12px rgba(59, 139, 245, 0.45);
+        opacity: 0;
+      }
+
+      /* ---------- scenes ---------- */
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        padding: 84px 80px 72px;
+        display: flex;
+        flex-direction: column;
+      }
+      .kicker {
+        display: block;
+        font-family: var(--mono);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 22px;
+      }
+      .h {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 80px;
+        line-height: 1.04;
+        letter-spacing: -0.035em;
+        max-width: 920px;
+      }
+      .h .line {
+        display: block;
+      }
+      .h em {
+        font-style: normal;
+        color: var(--accent);
+      }
+      .sub {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 34px;
+        line-height: 1.3;
+        color: var(--muted);
+        max-width: 900px;
+      }
+      .shot {
+        display: block;
+        border-radius: 18px;
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.55),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+      .stage {
+        position: relative;
+        flex: 1;
+        margin-top: 40px;
+      }
+
+      /* S1 hook */
+      #s1 .scene {
+        justify-content: center;
+      }
+      #s1 .h {
+        font-size: 104px;
+      }
+      #s1-mark {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 48px;
+      }
+      #s1-mark span {
+        font-family: var(--mono);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        color: var(--muted);
+      }
+
+      /* S2 pain */
+      #s2-lines {
+        position: absolute;
+        left: 80px;
+        top: 250px;
+        width: 920px;
+      }
+      .pain {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        font-weight: 900;
+        font-size: 74px;
+        letter-spacing: -0.035em;
+        line-height: 1.5;
+      }
+      .dot {
+        display: block;
+        flex: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+      }
+      #s2-card-wrap {
+        position: absolute;
+        left: 60px;
+        top: 96px;
+        width: 960px;
+        height: 540px;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.55),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+      #s2-card-wrap img {
+        display: block;
+        width: 1600px;
+        height: 756px;
+      }
+      #s2-hl {
+        position: absolute;
+        left: 8px;
+        top: 95px;
+        width: 944px;
+        height: 106px;
+        border: 4px solid var(--accent);
+        border-radius: 12px;
+        box-shadow: 0 0 34px rgba(59, 139, 245, 0.55);
+        opacity: 0;
+      }
+      #s2-q {
+        position: absolute;
+        left: 80px;
+        right: 80px;
+        bottom: 150px;
+        font-weight: 900;
+        font-size: 100px;
+        letter-spacing: -0.04em;
+        line-height: 1.02;
+      }
+
+      /* S3 brand */
+      #s3 .scene {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      #s3-logo {
+        width: 230px;
+        height: 230px;
+        margin-bottom: 44px;
+      }
+      #s3-word {
+        font-weight: 900;
+        font-size: 118px;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      #s3-tag {
+        margin-top: 34px;
+        font-size: 44px;
+        font-weight: 700;
+        line-height: 1.22;
+        color: var(--fg);
+        max-width: 860px;
+      }
+      #s3-tag em {
+        font-style: normal;
+        color: var(--accent);
+      }
+
+      /* KPI grids */
+      .grid2 {
+        display: grid;
+        grid-template-columns: 450px 450px;
+        gap: 24px 20px;
+      }
+      .grid2 .shot {
+        width: 450px;
+        height: 175px;
+      }
+      .note {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 34px;
+        font-family: var(--mono);
+        font-size: 26px;
+        color: var(--muted);
+      }
+      .live {
+        display: block;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 14px var(--green);
+      }
+      #s4-ring {
+        position: absolute;
+        left: -8px;
+        top: 191px;
+        width: 466px;
+        height: 191px;
+        border: 4px solid var(--red);
+        border-radius: 20px;
+        box-shadow: 0 0 30px rgba(229, 72, 77, 0.55);
+        opacity: 0;
+      }
+
+      /* S5 cash */
+      #s5-frame {
+        position: relative;
+        width: 920px;
+        height: 473px;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.55),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+      #s5-img {
+        display: block;
+        width: 920px;
+        height: 473px;
+        transform-origin: 45% 62%;
+      }
+
+      /* S6 operation */
+      .op-row {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        margin-bottom: 20px;
+      }
+      .op-tag {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 380px;
+        font-family: var(--mono);
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--fg);
+      }
+      .op-row .shot {
+        width: 480px;
+        height: 186px;
+      }
+
+      /* S7 detail */
+      #s7-card {
+        position: absolute;
+        left: 0;
+        top: 30px;
+        width: 450px;
+        height: 175px;
+      }
+      #s7-panel {
+        position: absolute;
+        right: -80px;
+        top: 0;
+        width: 660px;
+        height: 644px;
+        border-radius: 18px 0 0 18px;
+      }
+      #s7-cursor {
+        position: absolute;
+        left: 300px;
+        top: 150px;
+        width: 64px;
+        height: 64px;
+      }
+      #s7-ripple {
+        position: absolute;
+        left: 252px;
+        top: 98px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid var(--accent);
+        opacity: 0;
+      }
+      #s7-list {
+        position: absolute;
+        left: 0;
+        top: 60px;
+        width: 360px;
+      }
+      #s7-list .li {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 24px;
+      }
+      #s7-list .li b {
+        display: block;
+        width: 12px;
+        height: 12px;
+        flex: none;
+        background: var(--accent);
+        border-radius: 3px;
+      }
+
+      /* S8 departments */
+      #s8-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 22px 18px;
+        max-width: 920px;
+      }
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 22px 32px;
+        border-radius: 999px;
+        background: var(--bg-2);
+        border: 2px solid rgba(157, 176, 202, 0.22);
+        font-weight: 700;
+        font-size: 38px;
+        letter-spacing: -0.01em;
+      }
+      .chip .dot {
+        width: 18px;
+        height: 18px;
+        background: var(--accent);
+      }
+      #s8-base {
+        margin-top: 48px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 26px 30px;
+        border-radius: 16px;
+        background: var(--accent-soft);
+        border: 2px solid rgba(59, 139, 245, 0.45);
+        max-width: 920px;
+      }
+      #s8-base span {
+        font-size: 32px;
+        line-height: 1.3;
+        font-weight: 400;
+      }
+      #s8-base strong {
+        font-weight: 700;
+      }
+
+      /* S9 CTA */
+      #s9 .scene {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      #s9-q {
+        font-weight: 900;
+        font-size: 96px;
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+        max-width: 920px;
+      }
+      #s9-lock {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0 80px;
+      }
+      #s9-logo {
+        width: 150px;
+        height: 150px;
+        margin-bottom: 30px;
+      }
+      #s9-word {
+        font-weight: 900;
+        font-size: 96px;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      #s9-cta {
+        margin-top: 52px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 30px 44px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 38px;
+        line-height: 1.2;
+      }
+      #s9-cta svg {
+        display: block;
+        width: 44px;
+        height: 44px;
+        flex: none;
+      }
+      #s9-foot {
+        margin-top: 40px;
+        font-family: var(--mono);
+        font-size: 26px;
+        color: var(--muted);
+      }
+
+      /* demo badge */
+      #badge {
+        position: absolute;
+        right: 40px;
+        bottom: 34px;
+      }
+      #badge-in {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        border-radius: 999px;
+        background: rgba(8, 19, 34, 0.85);
+        border: 2px solid rgba(247, 103, 7, 0.65);
+        font-family: var(--mono);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: #ffb27a;
+      }
+      #badge-in i {
+        display: block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--orange);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="49"
+      data-width="1080"
+      data-height="1080"
+    >
+      <!-- persistent background -->
+      <div id="bg-grid" class="bg-layer"></div>
+      <div id="bg-glow" class="bg-layer"></div>
+      <div id="radar" data-layout-allow-overflow>
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <linearGradient id="sweepGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#3b8bf5" stop-opacity="0" />
+              <stop offset="1" stop-color="#3b8bf5" stop-opacity="0.55" />
+            </linearGradient>
+          </defs>
+          <g fill="none" stroke="#3b8bf5" stroke-opacity="0.35" stroke-width="0.4">
+            <circle cx="100" cy="100" r="95" />
+            <circle cx="100" cy="100" r="72" />
+            <circle cx="100" cy="100" r="49" />
+            <circle cx="100" cy="100" r="26" />
+            <line x1="5" y1="100" x2="195" y2="100" />
+            <line x1="100" y1="5" x2="100" y2="195" />
+          </g>
+          <g id="radar-sweep">
+            <path d="M100 100 L195 100 A95 95 0 0 0 167.2 32.8 Z" fill="url(#sweepGrad)" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- S1 · hook -->
+      <section id="s1" class="clip" data-start="0" data-duration="5" data-track-index="1">
+        <div class="scene" id="s1-in">
+          <div id="s1-mark">
+            <svg width="54" height="54" viewBox="0 0 100 100" aria-hidden="true">
+              <g fill="none" stroke="#3b8bf5" stroke-width="7">
+                <circle cx="50" cy="50" r="44" stroke-opacity="0.45" />
+                <circle cx="50" cy="50" r="24" />
+              </g>
+              <circle cx="50" cy="50" r="8" fill="#3b8bf5" />
+            </svg>
+            <span>TOWER CONTROL</span>
+          </div>
+          <h1 class="h">
+            <span class="line">Você sabe o que</span>
+            <span class="line">precisa da sua</span>
+            <span class="line"><em>atenção</em> na</span>
+            <span class="line">empresa hoje?</span>
+          </h1>
+        </div>
+      </section>
+
+      <!-- S2 · pain -->
+      <section id="s2" class="clip" data-start="5" data-duration="6.5" data-track-index="1">
+        <div class="scene" id="s2-in">
+          <div id="s2-lines" data-layout-allow-overlap data-layout-allow-occlusion>
+            <div class="pain"><span class="dot" style="background: var(--orange)"></span><span>Pedidos bloqueados.</span></div>
+            <div class="pain"><span class="dot" style="background: var(--red)"></span><span>Títulos vencidos.</span></div>
+            <div class="pain"><span class="dot" style="background: var(--orange)"></span><span>Compras pendentes.</span></div>
+            <div class="pain"><span class="dot" style="background: var(--orange)"></span><span>Estoque no mínimo.</span></div>
+          </div>
+          <div id="s2-card-wrap" data-layout-allow-overflow>
+            <img src="assets/alertas.png" alt="Atenção hoje" />
+            <div id="s2-hl"></div>
+          </div>
+          <div id="s2-q" data-layout-allow-overlap>Onde agir <em style="font-style: normal; color: var(--accent)">primeiro?</em></div>
+        </div>
+      </section>
+
+      <!-- S3 · brand -->
+      <section id="s3" class="clip" data-start="11.5" data-duration="4.5" data-track-index="1">
+        <div class="scene" id="s3-in">
+          <svg id="s3-logo" viewBox="0 0 100 100" aria-hidden="true">
+            <g fill="none" stroke="#3b8bf5" stroke-width="5">
+              <circle id="s3-r1" cx="50" cy="50" r="46" stroke-opacity="0.4" />
+              <circle id="s3-r2" cx="50" cy="50" r="31" stroke-opacity="0.7" />
+              <circle id="s3-r3" cx="50" cy="50" r="16" />
+            </g>
+            <circle id="s3-dot" cx="50" cy="50" r="6" fill="#3b8bf5" />
+          </svg>
+          <div id="s3-word">Tower Control</div>
+          <div id="s3-tag">A visão que sua gestão precisa para <em>decidir e agir.</em></div>
+        </div>
+      </section>
+
+      <!-- S4 · overview -->
+      <section id="s4" class="clip" data-start="16" data-duration="5.5" data-track-index="1">
+        <div class="scene" id="s4-in">
+          <span class="kicker">Visão geral</span>
+          <h2 class="h"><span class="line">Os departamentos</span><span class="line">em <em>uma visão.</em></span></h2>
+          <div class="stage">
+            <div class="grid2" id="s4-grid">
+              <img class="shot" src="assets/geral-r_faturado.png" alt="" />
+              <img class="shot" src="assets/geral-r_recebido.png" alt="" />
+              <img class="shot" src="assets/geral-fin_receber_vencido.png" alt="" />
+              <img class="shot" src="assets/geral-fat_pedidos_abertos.png" alt="" />
+            </div>
+            <div id="s4-ring"></div>
+            <div class="note" id="s4-note"><span class="live"></span><span>Dados atualizados automaticamente</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S5 · cash -->
+      <section id="s5" class="clip" data-start="21.5" data-duration="5.5" data-track-index="1">
+        <div class="scene" id="s5-in">
+          <span class="kicker">Financeiro</span>
+          <h2 class="h"><span class="line">Acompanhe o caixa</span><span class="line">e defina <em>prioridades.</em></span></h2>
+          <div class="stage">
+            <div id="s5-frame" data-layout-allow-overflow>
+              <img id="s5-img" src="assets/fin-fluxo.png" alt="Fluxo de caixa previsto" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S6 · operation -->
+      <section id="s6" class="clip" data-start="27" data-duration="5.5" data-track-index="1">
+        <div class="scene" id="s6-in">
+          <span class="kicker">Operação</span>
+          <h2 class="h"><span class="line">Veja o que está</span><span class="line"><em>travando</em> a operação.</span></h2>
+          <div class="stage">
+            <div class="op-row" id="s6-r1">
+              <div class="op-tag"><span class="dot" style="background: var(--red); width: 16px; height: 16px"></span>Faturamento</div>
+              <img class="shot" src="assets/kpi-credito.png" alt="" />
+            </div>
+            <div class="op-row" id="s6-r2">
+              <div class="op-tag"><span class="dot" style="background: var(--orange); width: 16px; height: 16px"></span>Compras</div>
+              <img class="shot" src="assets/kpi-aprovacao.png" alt="" />
+            </div>
+            <div class="op-row" id="s6-r3">
+              <div class="op-tag"><span class="dot" style="background: var(--orange); width: 16px; height: 16px"></span>Estoque</div>
+              <img class="shot" src="assets/kpi-minimo.png" alt="" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S7 · from number to detail -->
+      <section id="s7" class="clip" data-start="32.5" data-duration="6" data-track-index="1">
+        <div class="scene" id="s7-in">
+          <span class="kicker">Do indicador ao detalhe</span>
+          <h2 class="h"><span class="line">Entenda o número.</span><span class="line">Veja <em>de onde vem.</em></span></h2>
+          <div class="stage">
+            <img class="shot" id="s7-card" src="assets/geral-fin_receber_vencido.png" alt="" />
+            <div id="s7-ripple"></div>
+            <svg id="s7-cursor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 2 L4 20 L9 15 L12.5 22 L15.5 20.6 L12 13.8 L19 13.8 Z" fill="#ffffff" stroke="#081322" stroke-width="1.4" stroke-linejoin="round" />
+            </svg>
+            <div id="s7-list">
+              <div class="li"><b></b>Cliente</div>
+              <div class="li"><b></b>Título</div>
+              <div class="li"><b></b>Vencimento</div>
+              <div class="li"><b></b>Saldo</div>
+            </div>
+            <img class="shot" id="s7-panel" src="assets/detalhe.png" alt="Detalhe: A receber vencido" />
+          </div>
+        </div>
+      </section>
+
+      <!-- S8 · departments -->
+      <section id="s8" class="clip" data-start="38.5" data-duration="5" data-track-index="1">
+        <div class="scene" id="s8-in">
+          <span class="kicker">Personalização</span>
+          <h2 class="h" style="font-size: 72px"><span class="line">Indicadores adaptados</span><span class="line">a <em>cada departamento.</em></span></h2>
+          <div class="stage">
+            <div id="s8-chips">
+              <div class="chip"><span class="dot"></span>Financeiro</div>
+              <div class="chip"><span class="dot"></span>Faturamento</div>
+              <div class="chip"><span class="dot"></span>Cobrança</div>
+              <div class="chip"><span class="dot"></span>Compras</div>
+              <div class="chip"><span class="dot"></span>Estoque</div>
+              <div class="chip"><span class="dot"></span>Controladoria</div>
+              <div class="chip"><span class="dot" style="background: var(--green)"></span>Saúde dos dados</div>
+            </div>
+            <div id="s8-base">
+              <span><strong>Primeira implementação para TOTVS Protheus,</strong> com visão ajustada ao escopo de cada operação.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- S9 · CTA -->
+      <section id="s9" class="clip" data-start="43.5" data-duration="5.5" data-track-index="1">
+        <div class="scene" id="s9-in">
+          <div id="s9-q" data-layout-allow-overlap data-layout-allow-occlusion>Como seria ter essa visão na <span style="color: var(--accent)">sua empresa?</span></div>
+          <div id="s9-lock" data-layout-allow-overlap>
+            <svg id="s9-logo" viewBox="0 0 100 100" aria-hidden="true">
+              <g fill="none" stroke="#3b8bf5" stroke-width="5">
+                <circle cx="50" cy="50" r="46" stroke-opacity="0.4" />
+                <circle cx="50" cy="50" r="31" stroke-opacity="0.7" />
+                <circle cx="50" cy="50" r="16" />
+              </g>
+              <circle cx="50" cy="50" r="6" fill="#3b8bf5" />
+            </svg>
+            <div id="s9-word">Tower Control</div>
+            <div id="s9-cta">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5h16v11H8l-4 4z" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" />
+              </svg>
+              <span>Envie uma mensagem e conheça.</span>
+            </div>
+            <div id="s9-foot">Gestão · Indicadores · Controladoria · Protheus</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- demo-data badge while real screens are on screen -->
+      <div id="badge" class="clip" data-start="7.4" data-duration="31.1" data-track-index="2" style="inset: auto 40px 34px auto">
+        <div id="badge-in"><i></i>DADOS DEMONSTRATIVOS</div>
+      </div>
+
+      <div id="sweep-line"></div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const T = 49;
+
+      // ---------- ambient background ----------
+      tl.fromTo("#radar-sweep", { rotation: 0, svgOrigin: "100 100" }, { rotation: -360 * 6, svgOrigin: "100 100", duration: T, ease: "none" }, 0);
+      tl.fromTo("#bg-glow", { opacity: 0.7 }, { opacity: 1, duration: 4, ease: "sine.inOut", yoyo: true, repeat: 11 }, 0);
+      tl.fromTo("#bg-grid", { backgroundPosition: "0px 0px" }, { backgroundPosition: "0px 240px", duration: T, ease: "none" }, 0);
+
+      // scene-change light sweep
+      const cuts = [5, 11.5, 16, 21.5, 27, 32.5, 38.5, 43.5];
+      cuts.forEach((c) => {
+        tl.fromTo("#sweep-line", { x: -40, opacity: 0 }, { x: 1120, opacity: 1, duration: 0.55, ease: "power2.inOut" }, c - 0.3);
+        tl.to("#sweep-line", { opacity: 0, duration: 0.1 }, c + 0.25);
+      });
+
+      // helper: fade a scene's inner wrapper out before its cut
+      const outro = (sel, at) => tl.to(sel, { opacity: 0, y: -24, duration: 0.35, ease: "power2.in" }, at);
+      const headline = (scene, at) => {
+        tl.fromTo(`${scene} .kicker`, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, at);
+        tl.fromTo(`${scene} .h .line`, { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out", stagger: 0.12 }, at + 0.1);
+      };
+
+      // ---------- S1 hook (0–5) ----------
+      tl.fromTo("#s1-mark", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.2);
+      tl.fromTo("#s1 .h .line", { opacity: 0, y: 70 }, { opacity: 1, y: 0, duration: 0.6, ease: "power4.out", stagger: 0.28 }, 0.4);
+      tl.fromTo("#s1 .h em", { color: "#eef3fb" }, { color: "#3b8bf5", duration: 0.4 }, 1.6);
+      tl.fromTo("#s1-in", { scale: 1 }, { scale: 1.04, duration: 4.6, ease: "none", transformOrigin: "30% 50%" }, 0);
+      outro("#s1-in", 4.55);
+
+      // ---------- S2 pain (5–11.5) ----------
+      tl.fromTo("#s2 .pain", { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.45, ease: "power4.out", stagger: 0.42 }, 5.1);
+      tl.fromTo("#s2 .pain .dot", { scale: 0 }, { scale: 1, duration: 0.4, ease: "back.out(3)", stagger: 0.42 }, 5.2);
+      tl.to("#s2-lines", { opacity: 0, y: -60, duration: 0.4, ease: "power2.in" }, 7.25);
+      tl.fromTo("#s2-card-wrap", { opacity: 0, y: 90, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" }, 7.45);
+      tl.fromTo("#s2-hl", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 8.1);
+      tl.fromTo("#s2-hl", { y: 0 }, { y: 110, duration: 0.35, ease: "power2.inOut", immediateRender: false }, 8.65);
+      tl.to("#s2-hl", { y: 221, duration: 0.35, ease: "power2.inOut" }, 9.15);
+      tl.to("#s2-hl", { y: 331, duration: 0.35, ease: "power2.inOut" }, 9.65);
+      tl.fromTo("#s2-q", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.55, ease: "power4.out" }, 9.6);
+      tl.to("#s2-hl", { y: 0, duration: 0.45, ease: "power3.inOut" }, 10.3);
+      outro("#s2-in", 11.05);
+
+      // ---------- S3 brand (11.5–16) ----------
+      tl.fromTo("#s3-r1", { scale: 0, opacity: 0, svgOrigin: "50 50" }, { scale: 1, opacity: 1, svgOrigin: "50 50", duration: 0.7, ease: "power3.out" }, 11.6);
+      tl.fromTo("#s3-r2", { scale: 0, opacity: 0, svgOrigin: "50 50" }, { scale: 1, opacity: 1, svgOrigin: "50 50", duration: 0.7, ease: "power3.out" }, 11.75);
+      tl.fromTo("#s3-r3", { scale: 0, opacity: 0, svgOrigin: "50 50" }, { scale: 1, opacity: 1, svgOrigin: "50 50", duration: 0.7, ease: "power3.out" }, 11.9);
+      tl.fromTo("#s3-dot", { scale: 0, svgOrigin: "50 50" }, { scale: 1, svgOrigin: "50 50", duration: 0.5, ease: "back.out(4)" }, 12.15);
+      tl.fromTo("#s3-word", { opacity: 0, y: 40, scale: 1.06 }, { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" }, 12.3);
+      tl.fromTo("#s3-tag", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 13.0);
+      tl.fromTo("#s3-logo", { rotation: 0 }, { rotation: 90, duration: 4.4, ease: "none" }, 11.6);
+      outro("#s3-in", 15.55);
+
+      // ---------- S4 overview (16–21.5) ----------
+      headline("#s4", 16.05);
+      tl.fromTo("#s4-grid .shot", { opacity: 0, y: 50, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "back.out(1.6)", stagger: 0.16 }, 16.75);
+      tl.fromTo("#s4-ring", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" }, 18.4);
+      tl.fromTo("#s4-note", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.45, ease: "power2.out" }, 18.9);
+      tl.fromTo(".live", { scale: 1 }, { scale: 1.35, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 3 }, 19.0);
+      outro("#s4-in", 21.05);
+
+      // ---------- S5 cash (21.5–27) ----------
+      headline("#s5", 21.55);
+      tl.fromTo("#s5-frame", { opacity: 0, y: 70 }, { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" }, 22.2);
+      tl.fromTo("#s5-img", { scale: 1 }, { scale: 1.22, duration: 4.0, ease: "power1.inOut" }, 22.7);
+      outro("#s5-in", 26.55);
+
+      // ---------- S6 operation (27–32.5) ----------
+      headline("#s6", 27.05);
+      ["#s6-r1", "#s6-r2", "#s6-r3"].forEach((r, i) => {
+        tl.fromTo(`${r} .op-tag`, { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 27.8 + i * 0.55);
+        tl.fromTo(`${r} .shot`, { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 27.9 + i * 0.55);
+      });
+      tl.fromTo("#s6 .op-tag .dot", { scale: 1 }, { scale: 1.6, duration: 0.35, ease: "sine.inOut", yoyo: true, repeat: 3, stagger: 0.15 }, 30.0);
+      outro("#s6-in", 32.05);
+
+      // ---------- S7 detail (32.5–38.5) ----------
+      headline("#s7", 32.55);
+      tl.fromTo("#s7-card", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 33.2);
+      tl.fromTo("#s7-cursor", { opacity: 0, x: 220, y: 180 }, { opacity: 1, x: 0, y: 0, duration: 0.7, ease: "power3.out" }, 33.6);
+      tl.to("#s7-cursor", { scale: 0.85, duration: 0.1, ease: "power2.in", transformOrigin: "15% 10%" }, 34.35);
+      tl.to("#s7-cursor", { scale: 1, duration: 0.15, ease: "power2.out" }, 34.45);
+      tl.fromTo("#s7-ripple", { opacity: 0.9, scale: 0.3 }, { opacity: 0, scale: 1.6, duration: 0.6, ease: "power2.out" }, 34.38);
+      tl.fromTo("#s7-panel", { x: 700 }, { x: 0, duration: 0.7, ease: "power4.out" }, 34.55);
+      tl.to("#s7-cursor", { opacity: 0, duration: 0.25 }, 34.8);
+      tl.to("#s7-card", { opacity: 0, duration: 0.3 }, 34.9);
+      tl.fromTo("#s7-list .li", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out", stagger: 0.18 }, 35.3);
+      tl.fromTo("#s7-panel", { y: 0 }, { y: -40, duration: 2.6, ease: "sine.inOut", immediateRender: false }, 35.4);
+      outro("#s7-in", 38.05);
+
+      // ---------- S8 departments (38.5–43.5) ----------
+      headline("#s8", 38.55);
+      tl.fromTo("#s8-chips .chip", { opacity: 0, scale: 0.6, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "back.out(2)", stagger: 0.13 }, 39.25);
+      tl.fromTo("#s8-base", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 40.6);
+      tl.fromTo("#s8-chips .chip .dot", { scale: 1 }, { scale: 1.4, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 1, stagger: 0.08 }, 41.4);
+      outro("#s8-in", 43.05);
+
+      // ---------- S9 CTA (43.5–49) ----------
+      tl.fromTo("#s9-q", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.6, ease: "power4.out" }, 43.6);
+      tl.to("#s9-q", { opacity: 0, scale: 0.94, duration: 0.4, ease: "power2.in" }, 45.6);
+      tl.fromTo("#s9-logo", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2)" }, 46.0);
+      tl.fromTo("#s9-word", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 46.15);
+      tl.fromTo("#s9-cta", { opacity: 0, y: 40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "back.out(1.8)" }, 46.55);
+      tl.fromTo("#s9-foot", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 47.0);
+      tl.fromTo("#s9-cta", { boxShadow: "0 0 0 0 rgba(59,139,245,0.6)" }, { boxShadow: "0 0 0 22px rgba(59,139,245,0)", duration: 0.9, ease: "power2.out", repeat: 1, immediateRender: false }, 47.1);
+
+      // ---------- demo badge ----------
+      tl.fromTo("#badge-in", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 7.5);
+      tl.to("#badge-in", { opacity: 0, duration: 0.3 }, 11.1);
+      tl.to("#badge-in", { opacity: 1, duration: 0.4 }, 16.6);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
