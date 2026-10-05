@@ -7,9 +7,10 @@ destination: linkedin-feed
 aspect: "1:1"
 language: pt-BR
 audience: CEOs, CFOs, diretores, controllers e gestores de departamento
-length: 49s
+length: 50s
 angle: "Pergunta de abertura → situações concretas (dor) → a torre de controle → caixa, operação e detalhe → personalização → chamada para mensagem"
 vo_mode: none
+music: original-instrumental
 capture: demo-mode
 ---
 
@@ -42,3 +43,16 @@ Ficam em `assets/`.
 - Sem aprovação/correção pelo painel, sem envio automático de cobrança, sem IA, sem resultados prometidos.
 - A tela de Controladoria/DRE (`#/contabilidade`) não existe na versão do GitHub; a cena de detalhe usa o
   painel lateral "A receber vencido". Controladoria aparece só como departamento na cena de personalização.
+
+## Áudio
+
+- Trilha instrumental original (`audio-src/compor-trilha.mjs`, 100 BPM, Lá menor, gerada por código, sem direitos
+  de terceiros), normalizada para −16 LUFS; render final a −17 LUFS.
+- Efeitos da biblioteca do HyperFrames (Pixabay Content License, uso comercial livre): riser antes da marca,
+  impacto na entrada da marca, whoosh nos cortes, clique no cursor e chime no fechamento.
+- O vídeo funciona sem som (LinkedIn reproduz mudo); a trilha é um reforço para quem ativa o áudio.
+
+## Revisões
+
+- 05/10/2026: cena 8 passa a dizer que o painel pode incluir todo e qualquer módulo do Protheus (pedido de Marcos),
+  como possibilidade conforme a necessidade da operação; vídeo passa a 50 s.

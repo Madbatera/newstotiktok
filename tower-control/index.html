@@ -393,20 +393,28 @@
       #s8-chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 22px 18px;
+        gap: 18px 16px;
         max-width: 920px;
       }
       .chip {
         display: flex;
         align-items: center;
         gap: 16px;
-        padding: 22px 32px;
+        padding: 18px 28px;
         border-radius: 999px;
         background: var(--bg-2);
         border: 2px solid rgba(157, 176, 202, 0.22);
         font-weight: 700;
-        font-size: 38px;
+        font-size: 34px;
         letter-spacing: -0.01em;
+      }
+      .chip.any {
+        background: var(--accent);
+        border: 2px solid var(--accent);
+        color: #ffffff;
+      }
+      .chip.any .dot {
+        background: #ffffff;
       }
       .chip .dot {
         width: 18px;
@@ -414,7 +422,7 @@
         background: var(--accent);
       }
       #s8-base {
-        margin-top: 48px;
+        margin-top: 36px;
         display: flex;
         align-items: center;
         gap: 20px;
@@ -527,7 +535,7 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="49"
+      data-duration="50"
       data-width="1080"
       data-height="1080"
     >
@@ -687,7 +695,7 @@
       </section>
 
       <!-- S8 · departments -->
-      <section id="s8" class="clip" data-start="38.5" data-duration="5" data-track-index="1">
+      <section id="s8" class="clip" data-start="38.5" data-duration="6" data-track-index="1">
         <div class="scene" id="s8-in">
           <span class="kicker">Personalização</span>
           <h2 class="h" style="font-size: 72px"><span class="line">Indicadores adaptados</span><span class="line">a <em>cada departamento.</em></span></h2>
@@ -700,16 +708,17 @@
               <div class="chip"><span class="dot"></span>Estoque</div>
               <div class="chip"><span class="dot"></span>Controladoria</div>
               <div class="chip"><span class="dot" style="background: var(--green)"></span>Saúde dos dados</div>
+              <div class="chip any" id="s8-any"><span class="dot"></span>+ Qualquer módulo do Protheus</div>
             </div>
             <div id="s8-base">
-              <span><strong>Primeira implementação para TOTVS Protheus,</strong> com visão ajustada ao escopo de cada operação.</span>
+              <span><strong>Feito para o TOTVS Protheus:</strong> pode incluir todo e qualquer módulo do sistema, conforme a necessidade da sua operação.</span>
             </div>
           </div>
         </div>
       </section>
 
       <!-- S9 · CTA -->
-      <section id="s9" class="clip" data-start="43.5" data-duration="5.5" data-track-index="1">
+      <section id="s9" class="clip" data-start="44.5" data-duration="5.5" data-track-index="1">
         <div class="scene" id="s9-in">
           <div id="s9-q" data-layout-allow-overlap data-layout-allow-occlusion>Como seria ter essa visão na <span style="color: var(--accent)">sua empresa?</span></div>
           <div id="s9-lock" data-layout-allow-overlap>
@@ -739,11 +748,24 @@
       </div>
 
       <div id="sweep-line"></div>
+
+      <!-- áudio: trilha instrumental original + efeitos (Pixabay, uso comercial livre) -->
+      <audio id="a-trilha" src="assets/audio/trilha.mp3" data-start="0" data-duration="50" data-volume="0.9" data-fade-out="1.5" data-track-index="10"></audio>
+      <audio id="a-riser" src="assets/audio/riser.mp3" data-start="9" data-media-start="7.5" data-duration="2.5" data-volume="0.45" data-fade-in="0.6" data-track-index="11"></audio>
+      <audio id="a-impact" src="assets/audio/impact-bass-1.mp3" data-start="11.5" data-duration="2.1" data-volume="0.7" data-track-index="12"></audio>
+      <audio id="a-wh1" src="assets/audio/whoosh-short.mp3" data-start="15.75" data-duration="0.57" data-volume="0.35" data-track-index="13"></audio>
+      <audio id="a-wh2" src="assets/audio/whoosh-short.mp3" data-start="21.25" data-duration="0.57" data-volume="0.35" data-track-index="13"></audio>
+      <audio id="a-wh3" src="assets/audio/whoosh-short.mp3" data-start="26.75" data-duration="0.57" data-volume="0.35" data-track-index="13"></audio>
+      <audio id="a-wh4" src="assets/audio/whoosh-short.mp3" data-start="32.25" data-duration="0.57" data-volume="0.35" data-track-index="13"></audio>
+      <audio id="a-wh5" src="assets/audio/whoosh-short.mp3" data-start="38.25" data-duration="0.57" data-volume="0.35" data-track-index="13"></audio>
+      <audio id="a-wh6" src="assets/audio/whoosh-short.mp3" data-start="44.25" data-duration="0.57" data-volume="0.35" data-track-index="13"></audio>
+      <audio id="a-click" src="assets/audio/click-soft.mp3" data-start="34.35" data-duration="0.36" data-volume="0.6" data-track-index="14"></audio>
+      <audio id="a-chime" src="assets/audio/chime.mp3" data-start="47.55" data-duration="2.4" data-volume="0.4" data-track-index="14"></audio>
     </div>
 
     <script>
       const tl = gsap.timeline({ paused: true });
-      const T = 49;
+      const T = 50;
 
       // ---------- ambient background ----------
       tl.fromTo("#radar-sweep", { rotation: 0, svgOrigin: "100 100" }, { rotation: -360 * 6, svgOrigin: "100 100", duration: T, ease: "none" }, 0);
@@ -751,7 +773,7 @@
       tl.fromTo("#bg-grid", { backgroundPosition: "0px 0px" }, { backgroundPosition: "0px 240px", duration: T, ease: "none" }, 0);
 
       // scene-change light sweep
-      const cuts = [5, 11.5, 16, 21.5, 27, 32.5, 38.5, 43.5];
+      const cuts = [5, 11.5, 16, 21.5, 27, 32.5, 38.5, 44.5];
       cuts.forEach((c) => {
         tl.fromTo("#sweep-line", { x: -40, opacity: 0 }, { x: 1120, opacity: 1, duration: 0.55, ease: "power2.inOut" }, c - 0.3);
         tl.to("#sweep-line", { opacity: 0, duration: 0.1 }, c + 0.25);
@@ -833,19 +855,21 @@
 
       // ---------- S8 departments (38.5–43.5) ----------
       headline("#s8", 38.55);
-      tl.fromTo("#s8-chips .chip", { opacity: 0, scale: 0.6, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "back.out(2)", stagger: 0.13 }, 39.25);
-      tl.fromTo("#s8-base", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 40.6);
-      tl.fromTo("#s8-chips .chip .dot", { scale: 1 }, { scale: 1.4, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 1, stagger: 0.08 }, 41.4);
-      outro("#s8-in", 43.05);
+      tl.fromTo("#s8-chips .chip:not(.any)", { opacity: 0, scale: 0.6, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "back.out(2)", stagger: 0.13 }, 39.25);
+      tl.fromTo("#s8-any", { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2.4)" }, 40.4);
+      tl.fromTo("#s8-any", { boxShadow: "0 0 0 0 rgba(59,139,245,0.7)" }, { boxShadow: "0 0 0 20px rgba(59,139,245,0)", duration: 0.9, ease: "power2.out", repeat: 1, immediateRender: false }, 41.0);
+      tl.fromTo("#s8-base", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 41.3);
+      tl.fromTo("#s8-chips .chip .dot", { scale: 1 }, { scale: 1.4, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 1, stagger: 0.08 }, 42.2);
+      outro("#s8-in", 44.05);
 
       // ---------- S9 CTA (43.5–49) ----------
-      tl.fromTo("#s9-q", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.6, ease: "power4.out" }, 43.6);
-      tl.to("#s9-q", { opacity: 0, scale: 0.94, duration: 0.4, ease: "power2.in" }, 45.6);
-      tl.fromTo("#s9-logo", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2)" }, 46.0);
-      tl.fromTo("#s9-word", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 46.15);
-      tl.fromTo("#s9-cta", { opacity: 0, y: 40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "back.out(1.8)" }, 46.55);
-      tl.fromTo("#s9-foot", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 47.0);
-      tl.fromTo("#s9-cta", { boxShadow: "0 0 0 0 rgba(59,139,245,0.6)" }, { boxShadow: "0 0 0 22px rgba(59,139,245,0)", duration: 0.9, ease: "power2.out", repeat: 1, immediateRender: false }, 47.1);
+      tl.fromTo("#s9-q", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.6, ease: "power4.out" }, 44.6);
+      tl.to("#s9-q", { opacity: 0, scale: 0.94, duration: 0.4, ease: "power2.in" }, 46.6);
+      tl.fromTo("#s9-logo", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2)" }, 47);
+      tl.fromTo("#s9-word", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 47.15);
+      tl.fromTo("#s9-cta", { opacity: 0, y: 40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "back.out(1.8)" }, 47.55);
+      tl.fromTo("#s9-foot", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 48);
+      tl.fromTo("#s9-cta", { boxShadow: "0 0 0 0 rgba(59,139,245,0.6)" }, { boxShadow: "0 0 0 22px rgba(59,139,245,0)", duration: 0.9, ease: "power2.out", repeat: 1, immediateRender: false }, 48.1);
 
       // ---------- demo badge ----------
       tl.fromTo("#badge-in", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 7.5);
