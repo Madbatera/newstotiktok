@@ -1,0 +1,9 @@
+01|Sua empresa já tem dados no Protheus. O Control Tower aproxima essas informações de quem precisa decidir.
+02|O acesso começa com o usuário e a senha do Protheus. O sistema identifica, no menu, os painéis autorizados para cada pessoa.
+03|Financeiro, compras, estoque e controladoria ganham uma visão conectada, com cartões, gráficos e listas para acompanhar os principais indicadores.
+04|E cada número pode ser investigado. Do indicador ao detalhe, até o documento de origem, para entender o que está por trás do resultado.
+05|No estoque, acompanhe o valor por armazém, os produtos de maior valor e os itens abaixo do mínimo. Identifique pontos que merecem atenção antes da próxima decisão.
+06|Nas compras, analise fornecedores, pedidos em aberto, aprovações pendentes e atrasos. Enxergue onde o processo precisa de acompanhamento.
+07|Consulte a operação de forma consolidada ou por recorte, acompanhe o resultado na controladoria e veja como cada indicador é calculado.
+08|Os cálculos acontecem no servidor, em segundo plano, com cache por usuário de quinze minutos para reduzir consultas repetidas ao Protheus.
+09|Control Tower. Mais clareza para acompanhar sua operação e apoiar decisões. Conheça a solução.

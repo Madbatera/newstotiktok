@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="pt-BR" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Control Tower — apresentação</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #0c1420;
+        --panel: #151f2e;
+        --fg: #eef3fb;
+        --muted: #a3b3c9;
+        --accent: #3b8bf5;
+        --blue: #066fd1;
+        --green: #2fb344;
+        --orange: #f76707;
+        --red: #e5484d;
+        --display: "Montserrat", sans-serif;
+        --mono: "IBM Plex Mono", monospace;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--display);
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+      .layer {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* background */
+      #bg-grid {
+        background-image:
+          linear-gradient(rgba(163, 179, 201, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(163, 179, 201, 0.05) 1px, transparent 1px);
+        background-size: 80px 80px;
+      }
+      #bg-glow {
+        background: radial-gradient(circle at 50% 42%, rgba(59, 139, 245, 0.2), transparent 55%);
+      }
+
+      /* full-screen product shots, moved by a "camera" (transform on the img) */
+      .shot {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .shot img.full {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        transform-origin: 0 0;
+      }
+      .ring {
+        position: absolute;
+        border: 5px solid var(--accent);
+        border-radius: 18px;
+        box-shadow: 0 0 40px rgba(59, 139, 245, 0.55);
+        opacity: 0;
+      }
+      .ring.red {
+        border-color: var(--red);
+        box-shadow: 0 0 40px rgba(229, 72, 77, 0.55);
+      }
+      .float {
+        position: absolute;
+        display: block;
+        border-radius: 18px;
+        box-shadow:
+          0 40px 100px rgba(0, 0, 0, 0.6),
+          0 0 0 1px rgba(255, 255, 255, 0.08);
+      }
+      .dim {
+        position: absolute;
+        inset: 0;
+        background: rgba(8, 12, 20, 0.72);
+      }
+      .cursor {
+        position: absolute;
+        width: 70px;
+        height: 70px;
+      }
+      .ripple {
+        position: absolute;
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        border: 5px solid var(--accent);
+        opacity: 0;
+      }
+
+      /* frame overlays */
+      #shade-top {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 220px;
+        background: linear-gradient(180deg, rgba(8, 12, 20, 0.85), rgba(8, 12, 20, 0));
+      }
+      #shade-bottom {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 260px;
+        background: linear-gradient(0deg, rgba(8, 12, 20, 0.92), rgba(8, 12, 20, 0));
+      }
+      .headline {
+        position: absolute;
+        left: 64px;
+        top: 48px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .headline .k {
+        display: block;
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 24px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .headline .t {
+        display: block;
+        font-weight: 900;
+        font-size: 56px;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+      }
+      .modchip {
+        position: absolute;
+        left: 64px;
+        top: 196px;
+        padding: 12px 26px;
+        border-radius: 999px;
+        background: var(--blue);
+        font-weight: 700;
+        font-size: 30px;
+      }
+
+      /* captions */
+      #captions {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 46px;
+        display: flex;
+        justify-content: center;
+      }
+      .cap {
+        position: absolute;
+        bottom: 0;
+        max-width: 1500px;
+        padding: 16px 30px;
+        border-radius: 14px;
+        background: rgba(6, 10, 18, 0.82);
+        font-weight: 700;
+        font-size: 40px;
+        line-height: 1.25;
+        text-align: center;
+        opacity: 0;
+      }
+
+      #badge {
+        position: absolute;
+        right: 48px;
+        top: 52px;
+      }
+      #badge-in {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 22px;
+        border-radius: 999px;
+        background: rgba(8, 12, 20, 0.85);
+        border: 2px solid rgba(247, 103, 7, 0.65);
+        font-family: var(--mono);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: #ffb27a;
+      }
+      #badge-in i {
+        display: block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--orange);
+      }
+
+      /* S1 + S9 brand */
+      .brand {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .brand img {
+        display: block;
+        width: 400px;
+        height: 400px;
+      }
+      .brand .word {
+        margin-top: 6px;
+        font-weight: 900;
+        font-size: 120px;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .brand .tag {
+        margin-top: 26px;
+        font-weight: 700;
+        font-size: 50px;
+        color: var(--accent);
+      }
+      .brand .sub {
+        margin-top: 22px;
+        font-weight: 400;
+        font-size: 40px;
+        color: var(--muted);
+      }
+      #s1-screen {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* S8 diagram */
+      #s8-flow {
+        position: absolute;
+        left: 120px;
+        right: 120px;
+        top: 330px;
+        height: 330px;
+      }
+      .node {
+        position: absolute;
+        top: 0;
+        width: 330px;
+        height: 330px;
+        border-radius: 26px;
+        background: var(--panel);
+        border: 2px solid rgba(163, 179, 201, 0.2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        text-align: center;
+        padding: 20px;
+      }
+      .node svg {
+        display: block;
+        width: 96px;
+        height: 96px;
+      }
+      .node b {
+        display: block;
+        font-weight: 900;
+        font-size: 38px;
+        letter-spacing: -0.02em;
+      }
+      .node span {
+        display: block;
+        font-size: 26px;
+        color: var(--muted);
+        line-height: 1.25;
+      }
+      .node.hot {
+        border-color: var(--accent);
+        box-shadow: 0 0 50px rgba(59, 139, 245, 0.35);
+      }
+      .link {
+        position: absolute;
+        top: 163px;
+        height: 4px;
+        background: rgba(59, 139, 245, 0.35);
+        transform-origin: 0 50%;
+      }
+      .packet {
+        position: absolute;
+        top: 153px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 24px var(--accent);
+        opacity: 0;
+      }
+      #s8-ilus {
+        position: absolute;
+        right: 120px;
+        top: 700px;
+        font-family: var(--mono);
+        font-size: 24px;
+        color: var(--muted);
+      }
+      #s8-proof {
+        position: absolute;
+        left: 120px;
+        top: 760px;
+        width: 1700px;
+        padding: 22px 24px;
+        border-radius: 16px;
+        background: var(--panel);
+        border: 2px solid rgba(47, 179, 68, 0.5);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      #s8-proof .lbl {
+        display: block;
+        font-family: var(--mono);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--green);
+        letter-spacing: 0.08em;
+      }
+      #s8-proof .crop {
+        display: block;
+        width: 1652px;
+        height: 53px;
+        overflow: hidden;
+      }
+      #s8-proof img {
+        display: block;
+        width: 3609px;
+        height: 53px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="87" data-width="1920" data-height="1080">
+      <div id="bg-grid" class="layer"></div>
+      <div id="bg-glow" class="layer"></div>
+
+      <!-- S1 · marca + visão geral (0–9,5) -->
+      <section id="s1" class="clip" data-start="0" data-duration="9.5" data-track-index="1">
+        <div class="brand" id="s1-brand">
+          <img id="s1-logo" src="assets/logo.png" alt="Control Tower" />
+          <div class="word" id="s1-word">Control Tower</div>
+        </div>
+        <div id="s1-screen">
+          <div class="shot" data-layout-allow-overflow><img class="full" id="s1-img" src="assets/telas/tela-visao-geral.png" alt="" /></div>
+        </div>
+      </section>
+
+      <!-- S2 · acesso (9,5–18,7) -->
+      <section id="s2" class="clip" data-start="9.5" data-duration="9.2" data-track-index="1">
+        <div class="shot" data-layout-allow-overflow id="s2-a">
+          <img class="full" id="s2-img1" src="assets/telas/login.png" alt="" />
+          <img class="full" id="s2-img2" src="assets/telas/login-preenchido.png" alt="" />
+          <div class="ripple" id="s2-rip"></div>
+          <svg class="cursor" id="s2-cur" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2 L4 20 L9 15 L12.5 22 L15.5 20.6 L12 13.8 L19 13.8 Z" fill="#ffffff" stroke="#0c1420" stroke-width="1.4" stroke-linejoin="round" /></svg>
+        </div>
+        <div class="shot" data-layout-allow-overflow id="s2-b" style="background: var(--bg)">
+          <img class="full" id="s2-img3" src="assets/telas/tela-visao-geral.png" alt="" />
+          <div class="ring" id="s2-ring"></div>
+        </div>
+      </section>
+
+      <!-- S3 · visão conectada (18,7–28,6) -->
+      <section id="s3" class="clip" data-start="18.7" data-duration="9.9" data-track-index="1">
+        <div class="shot" data-layout-allow-overflow id="s3-1"><img class="full" src="assets/telas/tela-financeiro.png" alt="" /></div>
+        <div class="shot" data-layout-allow-overflow id="s3-2"><img class="full" src="assets/telas/tela-compras.png" alt="" /></div>
+        <div class="shot" data-layout-allow-overflow id="s3-3"><img class="full" src="assets/telas/tela-estoque.png" alt="" /></div>
+        <div class="shot" data-layout-allow-overflow id="s3-4"><img class="full" src="assets/telas/tela-contabilidade.png" alt="" /></div>
+      </section>
+
+      <!-- S4 · do indicador ao documento (28,6–38,2) -->
+      <section id="s4" class="clip" data-start="28.6" data-duration="9.6" data-track-index="1">
+        <div class="shot" data-layout-allow-overflow id="s4-a">
+          <img class="full" src="assets/telas/tela-visao-geral.png" alt="" style="filter: blur(6px)" />
+          <div class="dim"></div>
+          <img class="float" id="s4-kpi" src="assets/telas/kpi-receber-vencido.png" alt="" style="left: 494px; top: 382px; width: 933px; height: 318px" />
+          <div class="ripple" id="s4-rip" style="left: 1060px; top: 520px"></div>
+          <svg class="cursor" id="s4-cur" viewBox="0 0 24 24" aria-hidden="true" style="left: 1110px; top: 570px"><path d="M4 2 L4 20 L9 15 L12.5 22 L15.5 20.6 L12 13.8 L19 13.8 Z" fill="#ffffff" stroke="#0c1420" stroke-width="1.4" stroke-linejoin="round" /></svg>
+        </div>
+        <div class="shot" data-layout-allow-overflow id="s4-b">
+          <img class="full" id="s4-img" src="assets/telas/detalhe-tela.png" alt="" />
+          <div class="ring" id="s4-ring"></div>
+        </div>
+      </section>
+
+      <!-- S5 · estoque (38,2–49,2) -->
+      <section id="s5" class="clip" data-start="38.2" data-duration="11" data-track-index="1">
+        <div class="shot" data-layout-allow-overflow><img class="full" id="s5-img" src="assets/telas/tela-estoque.png" alt="" /><div class="ring red" id="s5-ring"></div></div>
+      </section>
+
+      <!-- S6 · compras (49,2–58,7) -->
+      <section id="s6" class="clip" data-start="49.2" data-duration="9.5" data-track-index="1">
+        <div class="shot" data-layout-allow-overflow id="s6-a"><img class="full" id="s6-img" src="assets/telas/tela-compras.png" alt="" /><div class="ring red" id="s6-ring"></div></div>
+        <div class="shot" data-layout-allow-overflow id="s6-b">
+          <div class="dim" style="background: var(--bg)"></div>
+          <img class="float" id="s6-forn" src="assets/telas/com-fornecedores.png" alt="" style="left: 210px; top: 230px; width: 1500px; height: 554px" />
+        </div>
+      </section>
+
+      <!-- S7 · consolidado, controladoria e cálculo (58,7–68,3) -->
+      <section id="s7" class="clip" data-start="58.7" data-duration="9.6" data-track-index="1">
+        <div class="shot" data-layout-allow-overflow id="s7-a"><img class="full" id="s7-img1" src="assets/telas/tela-financeiro.png" alt="" /><div class="ring" id="s7-ring1"></div></div>
+        <div class="shot" data-layout-allow-overflow id="s7-b"><img class="full" id="s7-img2" src="assets/telas/tela-contabilidade.png" alt="" /></div>
+        <div class="shot" data-layout-allow-overflow id="s7-c">
+          <div class="dim" style="background: var(--bg)"></div>
+          <img class="float" id="s7-fluxo" src="assets/telas/fin-fluxo.png" alt="" style="left: 240px; top: 250px; width: 1440px; height: 654px" />
+          <div class="ring" id="s7-ring2" style="left: 252px; top: 268px; width: 900px; height: 82px"></div>
+        </div>
+      </section>
+
+      <!-- S8 · servidor e cache (68,3–77,8) -->
+      <section id="s8" class="clip" data-start="68.3" data-duration="9.5" data-track-index="1">
+        <div id="s8-flow">
+          <div class="link" style="left: 330px; width: 120px"></div>
+          <div class="link" style="left: 780px; width: 120px"></div>
+          <div class="link" style="left: 1230px; width: 120px"></div>
+          <div class="packet" id="pk1" style="left: 330px"></div>
+          <div class="packet" id="pk2" style="left: 780px"></div>
+          <div class="packet" id="pk3" style="left: 1230px"></div>
+          <div class="node" id="n1" style="left: 0">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#a3b3c9" stroke-width="1.6"><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5" /><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" /></g></svg>
+            <b>Protheus</b><span>Dados do ERP</span>
+          </div>
+          <div class="node" id="n2" style="left: 450px">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#3b8bf5" stroke-width="1.6"><rect x="3" y="3" width="18" height="7" rx="2" /><rect x="3" y="14" width="18" height="7" rx="2" /><circle cx="7" cy="6.5" r="1" fill="#3b8bf5" /><circle cx="7" cy="17.5" r="1" fill="#3b8bf5" /></g></svg>
+            <b>Servidor</b><span>Cálculo em segundo plano</span>
+          </div>
+          <div class="node" id="n3" style="left: 900px">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#3b8bf5" stroke-width="1.6"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></g></svg>
+            <b>Cache</b><span>Por usuário · 15 minutos</span>
+          </div>
+          <div class="node" id="n4" style="left: 1350px">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#2fb344" stroke-width="1.6"><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M7 14v-3M11 14V8M15 14v-5" /><path d="M8 21h8" /></g></svg>
+            <b>Painel</b><span>Cartões, gráficos e listas</span>
+          </div>
+        </div>
+        <div id="s8-ilus">Ilustração conceitual</div>
+        <div id="s8-proof">
+          <span class="lbl">NA TELA DO SISTEMA</span>
+          <div class="crop"><img src="assets/telas/rodape-cache.png" alt="Somente leitura, direto do Protheus. Posição recalculada a cada 15 min." /></div>
+        </div>
+      </section>
+
+      <!-- S9 · fechamento (77,8–87) -->
+      <section id="s9" class="clip" data-start="77.8" data-duration="9.2" data-track-index="1">
+        <div class="brand" id="s9-brand">
+          <img id="s9-logo" src="assets/logo.png" alt="Control Tower" />
+          <div class="word" id="s9-word">Control Tower</div>
+          <div class="tag" id="s9-tag">Mais clareza para sua gestão.</div>
+          <div class="sub" id="s9-sub">Conheça a solução.</div>
+        </div>
+      </section>
+
+      <!-- overlays -->
+      <div id="shade-top" class="clip" data-start="5" data-duration="72.8" data-track-index="2"></div>
+      <div id="shade-bottom" class="layer"></div>
+
+      <div id="h1" class="clip headline" data-start="3.6" data-duration="5.9" data-track-index="3" style="inset: 48px auto auto 64px"><span class="k">Control Tower</span><span class="t">Informação para decidir.</span></div>
+      <div id="h2" class="clip headline" data-start="9.5" data-duration="9.2" data-track-index="3" style="inset: 48px auto auto 64px"><span class="k">Acesso</span><span class="t">Acesso com seu usuário Protheus</span></div>
+      <div id="h3" class="clip headline" data-start="18.7" data-duration="9.9" data-track-index="3" style="inset: 48px auto auto 64px"><span class="k">Gestão</span><span class="t">Uma visão conectada da gestão</span></div>
+      <div id="h4" class="clip headline" data-start="28.6" data-duration="9.6" data-track-index="3" style="inset: 48px auto auto 64px"><span class="k">Detalhe</span><span class="t">Do indicador ao documento de origem</span></div>
+      <div id="h5" class="clip headline" data-start="38.2" data-duration="11" data-track-index="3" style="inset: 48px auto auto 64px"><span class="k">Estoque</span><span class="t">Valor, armazéns e mínimos</span></div>
+      <div id="h6" class="clip headline" data-start="49.2" data-duration="9.5" data-track-index="3" style="inset: 48px auto auto 64px"><span class="k">Compras</span><span class="t">Fornecedores, aprovações e atrasos</span></div>
+      <div id="h7" class="clip headline" data-start="58.7" data-duration="9.6" data-track-index="3" style="inset: 48px auto auto 64px"><span class="k">Análise</span><span class="t">Consolidado e com o cálculo à vista</span></div>
+      <div id="h8" class="clip headline" data-start="68.3" data-duration="9.5" data-track-index="3" style="inset: 48px auto auto 64px"><span class="k">Como funciona</span><span class="t">Cálculos no servidor. Cache de 15 minutos.</span></div>
+
+      <div id="mod" class="clip" data-start="18.7" data-duration="9.9" data-track-index="4" style="inset: auto">
+        <div class="modchip" id="mc0">Financeiro</div>
+        <div class="modchip" id="mc1">Compras</div>
+        <div class="modchip" id="mc2">Estoque</div>
+        <div class="modchip" id="mc3">Controladoria &amp; Performance</div>
+      </div>
+
+      <div id="badge" class="clip" data-start="5.2" data-duration="63.1" data-track-index="5" style="inset: auto 48px auto auto">
+        <div id="badge-in"><i></i>DADOS DEMONSTRATIVOS</div>
+      </div>
+
+      <div id="captions" class="clip" data-start="0" data-duration="87" data-track-index="6" style="inset: auto 0 46px 0"></div>
+
+      <!-- áudio -->
+      <audio id="a-trilha" src="assets/audio/trilha.mp3" data-start="0" data-duration="87" data-volume="0.85" data-fade-out="2" data-track-index="10"></audio>
+      <audio id="v1" src="assets/locucao/fala-01.mp3" data-start="1.2" data-duration="6.60" data-volume="1.5" data-track-index="11"></audio>
+      <audio id="v2" src="assets/locucao/fala-02.mp3" data-start="10.2" data-duration="7.27" data-volume="1.5" data-track-index="11"></audio>
+      <audio id="v3" src="assets/locucao/fala-03.mp3" data-start="19.3" data-duration="8.64" data-volume="1.5" data-track-index="11"></audio>
+      <audio id="v4" src="assets/locucao/fala-04.mp3" data-start="29.2" data-duration="7.90" data-volume="1.5" data-track-index="11"></audio>
+      <audio id="v5" src="assets/locucao/fala-05.mp3" data-start="38.7" data-duration="9.72" data-volume="1.5" data-track-index="11"></audio>
+      <audio id="v6" src="assets/locucao/fala-06.mp3" data-start="49.7" data-duration="8.35" data-volume="1.5" data-track-index="11"></audio>
+      <audio id="v7" src="assets/locucao/fala-07.mp3" data-start="59.2" data-duration="8.23" data-volume="1.5" data-track-index="11"></audio>
+      <audio id="v8" src="assets/locucao/fala-08.mp3" data-start="68.8" data-duration="8.16" data-volume="1.5" data-track-index="11"></audio>
+      <audio id="v9" src="assets/locucao/fala-09.mp3" data-start="78.6" data-duration="5.52" data-volume="1.5" data-track-index="11"></audio>
+      <audio id="x-riser" src="assets/audio/riser.mp3" data-start="76" data-media-start="8.2" data-duration="1.8" data-volume="0.35" data-fade-in="0.5" data-track-index="12"></audio>
+      <audio id="x-impact" src="assets/audio/impact-bass-1.mp3" data-start="77.8" data-duration="2.1" data-volume="0.55" data-track-index="12"></audio>
+      <audio id="x-w1" src="assets/audio/whoosh-short.mp3" data-start="5" data-duration="0.57" data-volume="0.3" data-track-index="13"></audio>
+      <audio id="x-w2" src="assets/audio/whoosh-short.mp3" data-start="9.3" data-duration="0.57" data-volume="0.3" data-track-index="13"></audio>
+      <audio id="x-w3" src="assets/audio/whoosh-short.mp3" data-start="18.5" data-duration="0.57" data-volume="0.3" data-track-index="13"></audio>
+      <audio id="x-w4" src="assets/audio/whoosh-short.mp3" data-start="28.4" data-duration="0.57" data-volume="0.3" data-track-index="13"></audio>
+      <audio id="x-w5" src="assets/audio/whoosh-short.mp3" data-start="38" data-duration="0.57" data-volume="0.3" data-track-index="13"></audio>
+      <audio id="x-w6" src="assets/audio/whoosh-short.mp3" data-start="49" data-duration="0.57" data-volume="0.3" data-track-index="13"></audio>
+      <audio id="x-w7" src="assets/audio/whoosh-short.mp3" data-start="58.5" data-duration="0.57" data-volume="0.3" data-track-index="13"></audio>
+      <audio id="x-w8" src="assets/audio/whoosh-short.mp3" data-start="68.1" data-duration="0.57" data-volume="0.3" data-track-index="13"></audio>
+      <audio id="x-c1" src="assets/audio/click-soft.mp3" data-start="13.6" data-duration="0.36" data-volume="0.6" data-track-index="14"></audio>
+      <audio id="x-c2" src="assets/audio/click-soft.mp3" data-start="30.6" data-duration="0.36" data-volume="0.6" data-track-index="14"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const K = 1.2; // telas capturadas em 1600×900 css → 1920×1080
+
+      // câmera: enquadra o retângulo [x, y, w, h] (px da tela original) no centro do quadro
+      const cam = (r, o = {}) => {
+        const [x, y, w, h] = r;
+        const fw = o.fw || 1700, fh = o.fh || 700, cx = o.cx || 960, cy = o.cy || 560;
+        const s = Math.min(fw / (w * K), fh / (h * K), o.max || 3);
+        return { scale: s, x: cx - s * (x + w / 2) * K, y: cy - s * (y + h / 2) * K };
+      };
+      const FULL = { scale: 1, x: 0, y: 0 };
+      const move = (el, to, at, d = 1.2, ease = "power2.inOut") => tl.to(el, { ...to, duration: d, ease }, at);
+      // anel de destaque desenhado sobre a mesma câmera
+      const ringAt = (ring, r, c, pad = 10) => {
+        const [x, y, w, h] = r;
+        return { left: c.x + (x * K - pad) * c.scale, top: c.y + (y * K - pad) * c.scale, width: (w * K + 2 * pad) * c.scale, height: (h * K + 2 * pad) * c.scale };
+      };
+      const showRing = (ring, r, c, at, hold) => {
+        tl.set(ring, ringAt(ring, r, c), at);
+        tl.fromTo(ring, { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power2.out", immediateRender: false }, at);
+        tl.to(ring, { opacity: 0, duration: 0.3 }, at + hold);
+      };
+      const fadeIn = (el, at, d = 0.5) => tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: d, ease: "power1.out", immediateRender: false }, at);
+      const fadeOut = (el, at, d = 0.4) => tl.to(el, { opacity: 0, duration: d, ease: "power1.in" }, at);
+
+      // ---------- fundo ----------
+      tl.fromTo("#bg-grid", { backgroundPosition: "0px 0px" }, { backgroundPosition: "0px 320px", duration: 87, ease: "none" }, 0);
+      tl.fromTo("#bg-glow", { opacity: 0.7 }, { opacity: 1, duration: 4, ease: "sine.inOut", yoyo: true, repeat: 20 }, 0);
+
+      // ---------- S1 marca → visão geral ----------
+      tl.fromTo("#s1-logo", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 1.2, ease: "power3.out" }, 0.2);
+      tl.fromTo("#s1-word", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.9);
+      tl.to("#s1-brand", { opacity: 0, scale: 0.9, duration: 0.6, ease: "power2.in" }, 4.6);
+      tl.set("#s1-img", { ...cam([0, 0, 1600, 900], { fw: 1920, fh: 1080, cx: 960, cy: 540 }) }, 0);
+      tl.fromTo("#s1-screen", { opacity: 0, y: 220, scale: 0.82 }, { opacity: 1, y: 0, scale: 1, duration: 1.3, ease: "power3.out" }, 5.0);
+      move("#s1-img", cam([277, 164, 1288, 619]), 6.6, 2.8, "sine.inOut");
+
+      // ---------- S2 acesso ----------
+      const cLogin = cam([540, 40, 506, 690], { fh: 760, cy: 570 });
+      tl.set(["#s2-img1", "#s2-img2"], cLogin, 9.5);
+      tl.set("#s2-img2", { opacity: 0 }, 9.5);
+      fadeIn("#s2-a", 9.5, 0.4);
+      tl.to("#s2-img2", { opacity: 1, duration: 0.5 }, 11.6);
+      // cursor até o botão Entrar (594,660,398,40)
+      const bx = cLogin.x + (594 + 199) * K * cLogin.scale, by = cLogin.y + (660 + 20) * K * cLogin.scale;
+      tl.set("#s2-cur", { left: bx + 160, top: by + 120 }, 9.5);
+      tl.set("#s2-rip", { left: bx - 65, top: by - 65 }, 9.5);
+      tl.fromTo("#s2-cur", { opacity: 0, x: 0, y: 0 }, { opacity: 1, x: -160, y: -120, duration: 0.9, ease: "power3.out", immediateRender: false }, 12.5);
+      tl.fromTo("#s2-rip", { opacity: 0.9, scale: 0.3 }, { opacity: 0, scale: 1.6, duration: 0.6, ease: "power2.out", immediateRender: false }, 13.6);
+      tl.set("#s2-b", { opacity: 0 }, 9.5);
+      const cMenu = cam([0, 280, 640, 540], { fh: 720, cy: 580 });
+      tl.set("#s2-img3", cMenu, 9.5);
+      fadeIn("#s2-b", 14.2, 0.5);
+      // destaque descendo pelos itens do menu (Visão geral … Saúde dos dados: y 302…792, passo 55)
+      const items = [302, 357, 412, 467, 522, 577, 632, 687, 742];
+      items.forEach((yy, i) => showRing("#s2-ring", [8, yy - 2, 300, 54], cMenu, 14.8 + i * 0.34, 0.3));
+
+      // ---------- S3 visão conectada ----------
+      const mods = ["Financeiro", "Compras", "Estoque", "Controladoria & Performance"];
+      ["#s3-1", "#s3-2", "#s3-3", "#s3-4"].forEach((s, i) => {
+        const at = 18.7 + i * 2.45;
+        tl.set(`${s} img`, cam([256, 60, 1344, 800], { fw: 1920, fh: 1000, cx: 960, cy: 560 }), 18.7);
+        if (i > 0) tl.fromTo(s, { xPercent: 100 }, { xPercent: 0, duration: 0.55, ease: "power3.inOut", immediateRender: false }, at - 0.25);
+        else fadeIn(s, at, 0.4);
+        tl.to(`${s} img`, { ...cam([256, 60, 1344, 800], { fw: 2050, fh: 1080, cx: 960, cy: 560 }), duration: 2.7, ease: "none" }, at);
+      });
+      ["#s3-2", "#s3-3", "#s3-4"].forEach((s) => tl.set(s, { xPercent: 100 }, 18.7));
+      mods.forEach((m, i) => {
+        const at = 18.7 + i * 2.45;
+        tl.fromTo(`#mc${i}`, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, at);
+        if (i < 3) tl.to(`#mc${i}`, { opacity: 0, duration: 0.2 }, at + 2.35);
+      });
+
+      // ---------- S4 indicador → detalhe ----------
+      fadeIn("#s4-a", 28.6, 0.4);
+      tl.fromTo("#s4-kpi", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)", immediateRender: false }, 28.8);
+      tl.fromTo("#s4-cur", { opacity: 0, x: 220, y: 160 }, { opacity: 1, x: 0, y: 0, duration: 0.8, ease: "power3.out", immediateRender: false }, 29.6);
+      tl.fromTo("#s4-rip", { opacity: 0.9, scale: 0.3 }, { opacity: 0, scale: 1.6, duration: 0.6, ease: "power2.out", immediateRender: false }, 30.6);
+      tl.to("#s4-kpi", { scale: 0.96, duration: 0.1 }, 30.6);
+      tl.to("#s4-kpi", { scale: 1, duration: 0.15 }, 30.72);
+      tl.set("#s4-b", { opacity: 0 }, 28.6);
+      tl.set("#s4-img", FULL, 28.6);
+      fadeIn("#s4-b", 31.1, 0.4);
+      const cPanTop = cam([806, 0, 794, 470], { fh: 760, cy: 570 });
+      move("#s4-img", cPanTop, 31.6, 1.3);
+      const cPanRows = cam([806, 300, 794, 470], { fh: 760, cy: 570 });
+      move("#s4-img", cPanRows, 34.0, 1.4);
+      showRing("#s4-ring", [826, 340, 100, 300], cPanRows, 35.5, 2.3);
+
+      // ---------- S5 estoque ----------
+      tl.set("#s5-img", FULL, 38.2);
+      fadeIn("#s5", 38.2, 0.4);
+      const cEstK = cam([269, 177, 1304, 121], { fh: 600 });
+      move("#s5-img", cEstK, 39.0, 1.2);
+      showRing("#s5-ring", [1255, 193, 310, 105], cEstK, 40.6, 2.0);
+      const cArm = cam([277, 318, 636, 524], { fh: 740, cy: 575 });
+      move("#s5-img", cArm, 43.2, 1.3);
+      const cProd = cam([929, 318, 636, 524], { fh: 740, cy: 575 });
+      move("#s5-img", cProd, 46.0, 1.4);
+
+      // ---------- S6 compras ----------
+      tl.set("#s6-img", FULL, 49.2);
+      fadeIn("#s6-a", 49.2, 0.4);
+      const cComK = cam([269, 336, 1304, 243], { fh: 640 });
+      move("#s6-img", cComK, 50.0, 1.2);
+      showRing("#s6-ring", [929, 352, 310, 105], cComK, 51.6, 2.2);
+      tl.set("#s6-b", { opacity: 0 }, 49.2);
+      fadeIn("#s6-b", 54.4, 0.5);
+      tl.fromTo("#s6-forn", { y: 60, scale: 0.95 }, { y: 0, scale: 1, duration: 0.8, ease: "power3.out", immediateRender: false }, 54.4);
+      tl.to("#s6-forn", { scale: 1.06, duration: 3.6, ease: "none" }, 55.2);
+
+      // ---------- S7 consolidado, controladoria, cálculo ----------
+      tl.set("#s7-img1", FULL, 58.7);
+      fadeIn("#s7-a", 58.7, 0.4);
+      const cConta = cam([269, 100, 760, 140], { fh: 420, fw: 1500, cy: 560 });
+      move("#s7-img1", cConta, 59.3, 1.2);
+      showRing("#s7-ring1", [400, 164, 343, 32], cConta, 60.6, 1.6);
+      tl.set("#s7-b", { opacity: 0 }, 58.7);
+      tl.set("#s7-img2", cam([269, 148, 1304, 500], { fh: 760, cy: 570 }), 58.7);
+      fadeIn("#s7-b", 62.4, 0.5);
+      move("#s7-img2", cam([269, 148, 1304, 500], { fh: 840, fw: 1820, cy: 570 }), 62.6, 2.4, "none");
+      tl.set("#s7-c", { opacity: 0 }, 58.7);
+      fadeIn("#s7-c", 65.1, 0.5);
+      tl.fromTo("#s7-ring2", { opacity: 0 }, { opacity: 1, duration: 0.35, immediateRender: false }, 65.8);
+
+      // ---------- S8 servidor e cache ----------
+      tl.fromTo(["#n1", "#n2", "#n3", "#n4"], { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out", stagger: 0.35 }, 68.5);
+      tl.fromTo("#s8-flow .link", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power2.out", stagger: 0.35 }, 68.9);
+      [["#pk1", 70.2], ["#pk2", 70.9], ["#pk3", 71.6], ["#pk1", 73.4], ["#pk2", 74.1], ["#pk3", 74.8]].forEach(([p, at]) => {
+        tl.fromTo(p, { x: 0, opacity: 0 }, { x: 96, opacity: 1, duration: 0.55, ease: "power1.inOut", immediateRender: false }, at);
+        tl.to(p, { opacity: 0, duration: 0.15 }, at + 0.55);
+      });
+      tl.to("#n2", { borderColor: "#3b8bf5", boxShadow: "0 0 50px rgba(59,139,245,0.35)", duration: 0.3 }, 70.2);
+      tl.to("#n3", { borderColor: "#3b8bf5", boxShadow: "0 0 50px rgba(59,139,245,0.35)", duration: 0.3 }, 71.0);
+      tl.to("#n4", { borderColor: "#2fb344", boxShadow: "0 0 50px rgba(47,179,68,0.35)", duration: 0.3 }, 71.8);
+      fadeIn("#s8-ilus", 69.5, 0.5);
+      tl.fromTo("#s8-proof", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", immediateRender: false }, 73.0);
+      tl.set("#s8-proof", { opacity: 0 }, 68.3);
+
+      // ---------- S9 fechamento (sem contato) ----------
+      tl.fromTo("#s9-logo", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 1.0, ease: "power3.out" }, 77.9);
+      tl.fromTo("#s9-word", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 78.4);
+      tl.fromTo("#s9-tag", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 80.0);
+      tl.fromTo("#s9-sub", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 82.6);
+
+      // ---------- títulos das cenas ----------
+      [["#h1", 3.8], ["#h2", 9.7], ["#h3", 18.9], ["#h4", 28.8], ["#h5", 38.4], ["#h6", 49.4], ["#h7", 58.9], ["#h8", 68.4]].forEach(([h, at]) => {
+        tl.fromTo(`${h} .k`, { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, at);
+        tl.fromTo(`${h} .t`, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, at + 0.1);
+      });
+      tl.fromTo("#badge-in", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 5.4);
+
+      // ---------- legendas (sincronizadas com a locução) ----------
+      const FALAS = [
+        [1.2, 6.68, ["Sua empresa já tem dados no Protheus.", "O Control Tower aproxima essas informações", "de quem precisa decidir."]],
+        [10.2, 7.35, ["O acesso começa com o usuário e a senha do Protheus.", "O sistema identifica, no menu,", "os painéis autorizados para cada pessoa."]],
+        [19.3, 8.72, ["Financeiro, compras, estoque e controladoria", "ganham uma visão conectada, com cartões, gráficos e listas", "para acompanhar os principais indicadores."]],
+        [29.2, 7.97, ["E cada número pode ser investigado.", "Do indicador ao detalhe, até o documento de origem,", "para entender o que está por trás do resultado."]],
+        [38.7, 9.8, ["No estoque, acompanhe o valor por armazém,", "os produtos de maior valor e os itens abaixo do mínimo.", "Identifique pontos que merecem atenção", "antes da próxima decisão."]],
+        [49.7, 8.43, ["Nas compras, analise fornecedores, pedidos em aberto,", "aprovações pendentes e atrasos.", "Enxergue onde o processo precisa de acompanhamento."]],
+        [59.2, 8.31, ["Consulte a operação de forma consolidada ou por recorte,", "acompanhe o resultado na controladoria", "e veja como cada indicador é calculado."]],
+        [68.8, 8.24, ["Os cálculos acontecem no servidor, em segundo plano,", "com cache por usuário de quinze minutos", "para reduzir consultas repetidas ao Protheus."]],
+        [78.6, 5.6, ["Control Tower.", "Mais clareza para acompanhar sua operação e apoiar decisões.", "Conheça a solução."]],
+      ];
+      const capsEl = document.getElementById("captions");
+      let n = 0;
+      FALAS.forEach(([start, dur, parts]) => {
+        const total = parts.reduce((a, p) => a + p.length, 0);
+        let t = start;
+        parts.forEach((p) => {
+          const d = (p.length / total) * dur;
+          const el = document.createElement("div");
+          el.className = "cap";
+          el.id = `cap-${n++}`;
+          el.textContent = p;
+          capsEl.appendChild(el);
+          tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.12, immediateRender: false }, t);
+          tl.to(el, { opacity: 0, duration: 0.12 }, t + d - 0.06);
+          t += d;
+        });
+      });
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
