@@ -48,3 +48,8 @@ contato** (Daniel e telefone) do fechamento.
 - Locução sintética (Kokoro-82M, voz pm_alex) em `assets/locucao/`; falas em `assets/locucao/falas.txt`.
 - Trilha original `audio-src/compor-trilha.mjs` (104 BPM), com o volume reduzido para 32% durante as falas.
 - Efeitos da biblioteca HyperFrames (Pixabay Content License). Render final normalizado para −16 LUFS.
+
+## Revisões
+
+- 06/10/2026: a locução não fala mais o nome do produto (pedido de Marcos); logo e "Control Tower" continuam na tela.
+  Abertura: "Agora, essas informações ficam mais próximas de quem precisa decidir."; fechamento sem "Control Tower.".
